@@ -32,11 +32,15 @@ public:
 
     int32_t SmartEvaluation(int32_t depth, int32_t alpha, int32_t beta) const;
 
-    bool& PrintMoveMode();
+	int32_t FinalEvaluation() const;
+
+	bool& PrintMoveMode();
 
     bool& PrintBoardMode();
 
     void PrintMoveBoard(const Writer& writer) const;
+
+	bool GameEnded() const;
 
 private:
     void PlacePiece(const Cell& cell, const char& symbol);
@@ -45,7 +49,6 @@ private:
 
     bool IsThereCaptures(int32_t x, int32_t y, int32_t dx, int32_t dy, char my_symbol) const;
 
-    int32_t FinalEvaluation() const;
 
     vector<Cell> GetCaptures(int32_t x, int32_t y, int32_t dx, int32_t dy, char my_symbol) const;
 
@@ -56,5 +59,3 @@ private:
     bool print_board_mode_ = false;
     Cell last_move_;
 };
-
-

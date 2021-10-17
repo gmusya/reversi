@@ -193,3 +193,7 @@ void Board::PrintMoveBoard(const Writer& writer) const {
 	writer.Print("");
 }
 
+bool Board::GameEnded() const {
+	return (PossibleMoves().empty() && (MakeMove(Cell(-1, -1))).PossibleMoves().empty());
+}
+

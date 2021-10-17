@@ -21,6 +21,16 @@ bool MoveParser::ParseMove(const string& str, Board& board) {
         int32_t col = str[0] - 'a';
         int32_t row = str[1] - '1';
         if (0 <= col && col <= 7 && 0 <= row && row <= 7) {
+			bool possible = false;
+			for (const Cell& cell : board.PossibleMoves()) {
+				if (cell.x == col && cell.y == row) {
+					possible = true;
+				}
+			}
+			if (!possible) {
+				writer_.Print("Move is impossible");
+				return false;
+			}
             board = board.MakeMove(Cell(col, row));
             return true;
         } else {

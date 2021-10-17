@@ -35,5 +35,3 @@ Writer::Writer(std::ostream& output_stream) : stream_(output_stream) {
 void Writer::Print(int32_t value) const {
     stream_ << value;
 }
-
-

@@ -23,5 +23,3 @@ public:
 private:
     std::ostream& stream_;
 };
-
-
