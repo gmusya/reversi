@@ -4,9 +4,9 @@ project(reversi)
 set(CMAKE_CXX_STANDARD 20)
 
 add_executable(reversi
-        main.cpp
-        Board.cpp
-        Cell.cpp
-        MoveParser.cpp
-        Writer.cpp
+        source/main.cpp
+        source/Board.cpp
+        source/Cell.cpp
+        source/MoveParser.cpp
+        source/Writer.cpp
         )

@@ -36,11 +36,13 @@ bool MoveParser::ParseMove(const string& str, Board& board) {
     } else if (substring(str, 0, 5) == "/Skip" && substring(str, 5, 7) == " 0" && str.size() == 7) {
         if (board.PossibleMoves().empty()) {
             board = board.MakeMove(Cell(-1, -1));
+			return true;
         } else {
             writer_.Print("There are legal moves");
         }
     } else if (substring(str, 0, 5) == "/Skip" && substring(str, 5, 7) == " 1" && str.size() == 7) {
         board = board.MakeMove(Cell(-1, -1));
+		return true;
     } else if (str.size() == 12 && substring(str, 0, 10) == "/PrintMove") {
         if (substring(str, 10, 12) == " 0") {
             board.PrintMoveMode() = false;

@@ -188,5 +188,8 @@ void Board::PrintMoveBoard(const Writer& writer) const {
     if (print_move_mode_) {
         writer.Print(last_move_);
     }
+	writer.Print("");
+	writer.Print("");
+	writer.Print("");
 }
 
