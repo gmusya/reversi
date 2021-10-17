@@ -82,16 +82,16 @@ void MoveParser::RecommendHelp() const {
 }
 
 void MoveParser::Help() const {
-    writer_.Print(R"(> To get help use command /Help)");                                            // DONE
-    writer_.Print(R"(> To make move print [col][row], where col is a..h and row is 1..8)");         // DONE
-    writer_.Print(R"(> To get best move used command /BestMove)");                                  // DONE
-    writer_.Print(R"(> To disable printing table use command /PrintBoard 0)");                      // DONE
-    writer_.Print(R"(> To enable printing table use command /PrintBoard 1)");                       // DONE
-    writer_.Print(R"(> To disable printing last move use command /PrintMove 0)");                   // DONE
-    writer_.Print(R"(> To enable printing last move use command /PrintMove1)");                     // DONE
-    writer_.Print(R"(> To get evaluation use command /Evaluation)");                                // DONE
-    writer_.Print(R"(> To skip move (if there are no legal moves) use command /Skip 0)");           // DONE
-    writer_.Print(R"(> To skip move (even if there are legal moves) use command /Skip 1)");         // DONE
+    writer_.Print(R"(> To get help use command /Help)");
+    writer_.Print(R"(> To make move print [col][row], where col is a..h and row is 1..8)");
+    writer_.Print(R"(> To get best move used command /BestMove)");
+    writer_.Print(R"(> To disable printing table use command /PrintBoard 0)");
+    writer_.Print(R"(> To enable printing table use command /PrintBoard 1)");
+    writer_.Print(R"(> To disable printing last move use command /PrintMove 0)");
+    writer_.Print(R"(> To enable printing last move use command /PrintMove1)");
+    writer_.Print(R"(> To get evaluation use command /Evaluation)");
+    writer_.Print(R"(> To skip move (if there are no legal moves) use command /Skip 0)");
+    writer_.Print(R"(> To skip move (even if there are legal moves) use command /Skip 1)");
     writer_.Print(R"(> To change depth use command /Depth [depth], where depth is 1..9 (6 and 7 are recommended))");
     writer_.Print(R"(> To leave use command /Leave)");
 }
