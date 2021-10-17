@@ -1,29 +1,29 @@
 #include <iostream>
 
 #include "Board.h"
-#include "Writer.h"
+#include "MoveParser.h"
 
 void StartGame() {
-    Board board;
+    Board board(1);
     Writer writer(std::cout);
-    while (true) {
-        Cell cell = board.GetBestMove(7);
-        writer.Print(cell);
-        board = board.MakeMove(cell);
-        char x;
-        char y;
-        std::cin >> x >> y;
-        if (x == '-' && y == '-') {
-            continue;
-        }
-        if (x == 's' && y == 's') {
-            break;
-        }
-        board = board.MakeMove(Cell(x - 'a', y - '1'));
+    MoveParser move_parser(writer);
+
+    bool game_ended = false;
+    while (!game_ended) {
+        board = board.MakeMove(board.GetBestMove(board.GetDepth()));
+        board.PrintMoveBoard(writer);
+        std::string str;
+        do {
+            getline(std::cin, str);
+            if (str == "/Leave") {
+                game_ended = true;
+            }
+        } while (!move_parser.ParseMove(str, board));
+        board.PrintMoveBoard(writer);
     }
 }
 
-int main(int argc, char* argv[]) {
+int main() {
     StartGame();
     return 0;
 }

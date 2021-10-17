@@ -16,8 +16,24 @@ void Writer::Print(const vector<vector<char>>& board) const {
 }
 
 void Writer::Print(const Cell& cell) const {
-    stream_ << static_cast<char>(cell.x + 'a') << static_cast<int>(cell.y) + 1 << std::endl;
+    if (cell.x == -1 && cell.y == -1) {
+        stream_ << "Skip" << std::endl;
+    } else if (cell.x == -2 && cell.y == -2) {
+        stream_ << "There is no last move" << std::endl;
+    } else {
+        stream_ << static_cast<char>(cell.x + 'a') << static_cast<int>(cell.y) + 1 << std::endl;
+    }
+}
+
+void Writer::Print(const std::string& string) const {
+    stream_ << string << std::endl;
 }
 
 Writer::Writer(std::ostream& output_stream) : stream_(output_stream) {
 }
+
+void Writer::Print(int32_t value) const {
+    stream_ << value;
+}
+
+

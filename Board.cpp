@@ -1,25 +1,21 @@
 #include "Board.h"
 
-#include <iostream>
-
-Board::Board() {
+Board::Board(int32_t depth) : depth_(depth), last_move_(-2, -2) {
     state_.resize(8, std::vector<char>(8, '*'));
     PlacePiece(Cell(4, 3), 'o');
     PlacePiece(Cell(3, 4), 'o');
     PlacePiece(Cell(3, 3), 'x');
     PlacePiece(Cell(4, 4), 'x');
-    /*PlacePiece(Cell(0, 7), 'x');
-    PlacePiece(Cell(0, 6), 'x');
-    PlacePiece(Cell(1, 6), 'o');
-    PlacePiece(Cell(2, 5), 'o');*/
     player_ = Player::First;
+    print_board_mode_ = true;
+    print_move_mode_ = true;
 }
 
 void Board::PlacePiece(const Cell& cell, const char& symbol) {
     state_[cell.y][cell.x] = symbol;
 }
 
-vector<vector<char>>& Board::GetState() {
+const vector<vector<char>>& Board::GetState() const {
     return state_;
 }
 
@@ -50,7 +46,7 @@ int32_t Board::SmartEvaluation(int32_t depth, int32_t alpha, int32_t beta) const
     int32_t value = -64;
     vector<Cell> possible_moves = PossibleMoves();
     if (possible_moves.empty()) {
-        Board new_board = Board(state_, player_ == Player::First ? Player::Second : Player::First);
+        Board new_board = MakeMove(Cell(-1, -1));
         int32_t candidate_value = -new_board.SmartEvaluation(depth - 1, -beta, -alpha);
         if (value < candidate_value) {
             value = candidate_value;
@@ -74,6 +70,11 @@ Board Board::MakeMove(const Cell& cell) const {
     int32_t x = cell.x;
     int32_t y = cell.y;
     Board board = *this;
+    board.last_move_ = cell;
+    if (x == -1 && y == -1) {
+        board.player_ = (player_ == Player::First ? Player::Second : Player::First);
+        return board;
+    }
     for (int32_t dx = -1; dx <= 1; ++dx) {
         for (int32_t dy = -1; dy <= 1; ++dy) {
             if (dx == 0 && dy == 0) {
@@ -149,11 +150,6 @@ vector<Cell> Board::GetCaptures(int32_t x, int32_t y, int32_t dx, int32_t dy, ch
     return {};
 }
 
-Board::Board(const vector<vector<char>>& state, const Player& player) {
-    state_ = state;
-    player_ = player;
-}
-
 Cell Board::GetBestMove(int32_t depth) const {
     vector<Cell> possible_moves = PossibleMoves();
     int32_t value = -64;
@@ -167,5 +163,30 @@ Cell Board::GetBestMove(int32_t depth) const {
         }
     }
     return best_move;
+}
+
+int32_t Board::GetDepth() const {
+    return depth_;
+}
+
+void Board::ChangeDepth(int32_t depth) {
+    depth_ = depth;
+}
+
+bool& Board::PrintMoveMode() {
+    return print_move_mode_;
+}
+
+bool& Board::PrintBoardMode() {
+    return print_board_mode_;
+}
+
+void Board::PrintMoveBoard(const Writer& writer) const {
+    if (print_board_mode_) {
+        writer.Print(GetState());
+    }
+    if (print_move_mode_) {
+        writer.Print(last_move_);
+    }
 }
 
