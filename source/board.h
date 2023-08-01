@@ -12,8 +12,6 @@ namespace ReversiEngine {
     public:
         Board();
 
-        [[nodiscard]] std::vector<std::vector<char>> GetState() const;
-
         [[nodiscard]] std::vector<Cell> PossibleMoves() const;
 
         [[nodiscard]] char MySymbol() const;
@@ -36,8 +34,6 @@ namespace ReversiEngine {
         std::bitset<64>& Opposite(Player player);
 
         [[nodiscard]] const std::bitset<64>& Same(Player player) const;
-
-        [[nodiscard]] const std::bitset<64>& Opposite(Player player) const;
 
         [[nodiscard]] bool IsThereCaptures(int32_t row, int32_t col, int32_t drow,
                                            int32_t dcol) const;

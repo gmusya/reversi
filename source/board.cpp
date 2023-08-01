@@ -24,23 +24,6 @@ namespace ReversiEngine {
         Opposite(player)[position] = false;
     }
 
-    std::vector<std::vector<char>> Board::GetState() const {
-        std::vector<std::vector<char>> result(8, std::vector<char>(8));
-        for (int32_t row = 0; row < 8; ++row) {
-            for (int32_t col = 0; col < 8; ++col) {
-                int32_t position = Cell{row, col}.ToInt();
-                if (is_first_[position]) {
-                    result[row][col] = 'x';
-                } else if (is_second_[position]) {
-                    result[row][col] = 'o';
-                } else {
-                    result[row][col] = '*';
-                }
-            }
-        }
-        return result;
-    }
-
     bool Board::IsInBoundingBox(const Cell& cell) {
         return (0 <= cell.col && cell.col <= 7 && 0 <= cell.row && cell.row <= 7);
     }
@@ -173,14 +156,6 @@ namespace ReversiEngine {
             return is_first_;
         } else {
             return is_second_;
-        }
-    }
-
-    const std::bitset<64>& Board::Opposite(Player player) const {
-        if (player == First) {
-            return is_second_;
-        } else {
-            return is_first_;
         }
     }
 
