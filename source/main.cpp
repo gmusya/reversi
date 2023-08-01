@@ -1,10 +1,10 @@
-#include <iostream>
-
 #include "board.h"
 #include "engine.h"
 #include "time_wrapper.h"
 
-const int32_t DEPTH = 8;
+#include <atomic>
+#include <iostream>
+#include <thread>
 
 namespace ReversiEngine {
 
@@ -48,18 +48,40 @@ namespace ReversiEngine {
         }
     }// namespace
 
+    Cell BestMoveForSecond(Board board) {
+        Time total_time(0);
+        int32_t depth = 2;
+        std::atomic<Cell> result{};
+        Engine engine;
+        auto foo = [&]() {
+            while (depth < 32) {
+                ++depth;
+                auto [best_move_info, time] =
+                        MeasureMethod(engine, &Engine::GetBestMove, board, depth);
+                if (engine.stop) {
+                    break;
+                }
+                result = best_move_info.first;
+                int32_t evaluation = best_move_info.second;
+                total_time += time;
+                std::cout << "[depth=" << depth << ", eval=" << evaluation << "]"
+                          << ": " << result << " (" << total_time << ")" << std::endl;
+            }
+        };
+        std::jthread th(foo);
+        sleep(1);
+        engine.stop = true;
+        return result;
+    }
+
     void StartGame(Player player) {
         Board board;
-        Engine engine;
         if (player == First) {
             std::cout << board << std::endl;
             ReadAndDoMove(board);
         }
         while (!board.GameEnded()) {
-            auto [best_move, time] = MeasureMethod(engine, &Engine::GetBestMove, board, DEPTH);
-            std::cout << time << std::endl;
-            std::cout << "Computer's move: " << best_move << " (" << time << ")" << std::endl;
-            board = board.MakeMove(engine.GetBestMove(board, DEPTH));
+            board = board.MakeMove(BestMoveForSecond(board));
             std::cout << board << std::endl;
             ReadAndDoMove(board);
             std::cout << board << std::endl;

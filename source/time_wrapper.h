@@ -16,6 +16,10 @@ namespace ReversiEngine {
             return *this;
         }
 
+        bool operator<(const Time& time) const {
+            return seconds < time.seconds;
+        }
+
         friend std::ostream& operator<<(std::ostream& os, const Time& time) {
             return os << std::fixed << std::setprecision(6) << time.seconds << " sec";
         }

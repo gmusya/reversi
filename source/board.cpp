@@ -1,14 +1,23 @@
 #include "board.h"
 
-#include <vector>
-
-std::vector<std::vector<int>> arr = {
-        {100, 30, 30, 30, 30, 30, 30, 100}, {30, 1, 1, 1, 1, 1, 1, 30},
-        {30, 1, 1, 1, 1, 1, 1, 30},         {30, 1, 1, 1, 1, 1, 1, 30},
-        {30, 1, 1, 1, 1, 1, 1, 30},         {30, 1, 1, 1, 1, 1, 1, 30},
-        {30, 1, 1, 1, 1, 1, 1, 30},         {100, 30, 30, 30, 30, 30, 30, 100}};
+#include <array>
 
 namespace ReversiEngine {
+
+    namespace {
+        // clang-format off
+        const std::array<std::array<int, 8>, 8> CELL_COST = {{
+            {100,  30,  30,  30,  30,  30,  30, 100},
+            { 30,   1,   1,   1,   1,   1,   1,  30},
+            { 30,   1,   1,   1,   1,   1,   1,  30},
+            { 30,   1,   1,   1,   1,   1,   1,  30},
+            { 30,   1,   1,   1,   1,   1,   1,  30},
+            { 30,   1,   1,   1,   1,   1,   1,  30},
+            { 30,   1,   1,   1,   1,   1,   1,  30},
+            {100,  30,  30,  30,  30,  30,  30, 100}
+        }};
+        // clang-format on
+    }// namespace
 
     Board::Board() {
         PlacePiece(Cell{4, 3}, First);
@@ -34,9 +43,9 @@ namespace ReversiEngine {
             for (int32_t col = 0; col < 8; ++col) {
                 Cell cell{row, col};
                 if (is_first_[cell.ToInt()]) {
-                    result += arr[row][col];
+                    result += CELL_COST[row][col];
                 } else if (is_second_[cell.ToInt()]) {
-                    result -= arr[row][col];
+                    result -= CELL_COST[row][col];
                 }
             }
         }
