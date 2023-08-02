@@ -88,7 +88,7 @@ namespace ReversiEngine {
         int32_t start_pos = first.ToInt();
         int32_t to_add = Cell{drow, dcol}.ToInt();
         int32_t current_position = 0;
-        while (current_position < line_length) {
+        while (current_position + 2 < line_length) {
             if (!Same(player_)[start_pos + current_position * to_add]) {
                 ++current_position;
                 continue;
@@ -108,6 +108,21 @@ namespace ReversiEngine {
         }
     }
 
+    namespace {
+        std::vector<Cell> BitsetToVector(const std::bitset<64>& is_possible) {
+            std::vector<Cell> result;
+            result.reserve(is_possible.count());
+            for (size_t position = is_possible._Find_first(); position < 64;
+                 position = is_possible._Find_next(position)) {
+                if (is_possible[position]) {
+                    result.push_back({static_cast<int32_t>(position >> 3),
+                                      static_cast<int32_t>(position & 7)});
+                }
+            }
+            return result;
+        }
+    }// namespace
+
     std::vector<Cell> Board::PossibleMoves() const {
         std::bitset<64> is_possible;
         for (int32_t row = 0; row < 8; ++row) {
@@ -118,29 +133,23 @@ namespace ReversiEngine {
             CheckLine({0, col}, 1, 0, is_possible, 8);
             CheckLine({7, col}, -1, 0, is_possible, 8);
         }
-        for (int32_t col = 0; col < 8; ++col) {
+        for (int32_t col = 0; col < 6; ++col) {
             CheckLine({0, col}, 1, 1, is_possible, 8 - col);
             CheckLine({7 - col, 7}, -1, -1, is_possible, 8 - col);
         }
-        for (int32_t row = 1; row < 8; ++row) {
+        for (int32_t row = 1; row < 6; ++row) {
             CheckLine({row, 0}, 1, 1, is_possible, 8 - row);
             CheckLine({7, 7 - row}, -1, -1, is_possible, 8 - row);
         }
-        for (int32_t col = 1; col < 8; ++col) {
+        for (int32_t col = 2; col < 8; ++col) {
             CheckLine({0, col}, 1, -1, is_possible, col + 1);
             CheckLine({col, 0}, -1, 1, is_possible, col + 1);
         }
-        for (int32_t row = 0; row < 8; ++row) {
+        for (int32_t row = 1; row < 6; ++row) {
             CheckLine({row, 7}, 1, -1, is_possible, 8 - row);
             CheckLine({7, row}, -1, 1, is_possible, 8 - row);
         }
-        std::vector<Cell> result;
-        for (int32_t position = 0; position < 64; ++position) {
-            if (is_possible[position]) {
-                result.push_back({position >> 3, position & 7});
-            }
-        }
-        return result;
+        return BitsetToVector(is_possible);
     }
 
     std::vector<Cell> Board::OldPossibleMoves() const {
