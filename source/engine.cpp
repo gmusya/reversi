@@ -69,7 +69,7 @@ namespace ReversiEngine {
                 if (alpha < value) {
                     alpha = value;
                 }
-                if (value > beta) {
+                if (value >= beta) {
                     return value;
                 }
             }
