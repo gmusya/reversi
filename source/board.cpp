@@ -101,8 +101,10 @@ namespace ReversiEngine {
             if (k > 1 && current_position + k < line_length &&
                 !Same(player_)[start_pos + to_add * (current_position + k)]) {
                 is_possible[start_pos + to_add * (current_position + k)] = true;
+                current_position += k + 1;
+            } else {
+                current_position += k;
             }
-            current_position += k + 1;
         }
     }
 
@@ -139,6 +141,47 @@ namespace ReversiEngine {
             }
         }
         return result;
+    }
+
+    std::vector<Cell> Board::OldPossibleMoves() const {
+        std::vector<Cell> res;
+        for (int32_t row = 0; row < 8; ++row) {
+            for (int32_t col = 0; col < 8; ++col) {
+                int32_t position = Cell{row, col}.ToInt();
+                if (is_first_[position] || is_second_[position]) {
+                    continue;
+                }
+                bool possible = false;
+                for (int32_t drow = -1; drow <= 1 && !possible; ++drow) {
+                    for (int32_t dcol = -1; dcol <= 1 && !possible; ++dcol) {
+                        if (dcol != 0 || drow != 0) {
+                            possible = IsThereCaptures(row, col, drow, dcol);
+                        }
+                    }
+                }
+                if (possible) {
+                    res.push_back({row, col});
+                }
+            }
+        }
+        return res;
+    }
+
+    bool Board::IsThereCaptures(int32_t row, int32_t col, int32_t drow, int32_t dcol) const {
+        for (int32_t k = 1; IsInBoundingBox(Cell{row + k * drow, col + k * dcol}); ++k) {
+            int32_t position = Cell{row + k * drow, col + k * dcol}.ToInt();
+            if (!is_first_[position] && !is_second_[position]) {
+                return false;
+            }
+            if (Same(player_)[position]) {
+                if (k != 1) {
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+        }
+        return false;
     }
 
     std::vector<Cell> Board::GetCaptures(int32_t row, int32_t col, int32_t drow,

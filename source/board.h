@@ -24,6 +24,8 @@ namespace ReversiEngine {
 
         friend std::ostream& operator<<(std::ostream& os, const Board& board);
 
+        std::vector<Cell> OldPossibleMoves() const;
+
     private:
         void PlacePiece(const Cell& cell, Player player);
 
@@ -42,6 +44,8 @@ namespace ReversiEngine {
 
         void CheckLine(Cell first, int dcol, int drow, std::bitset<64>& is_possible,
                        int32_t line_length) const;
+
+        bool IsThereCaptures(int32_t row, int32_t col, int32_t drow, int32_t dcol) const;
 
         std::bitset<64> is_first_;
         std::bitset<64> is_second_;

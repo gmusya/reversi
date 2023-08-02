@@ -1,6 +1,7 @@
 #include "engine.h"
 
 #include <algorithm>
+#include <cassert>
 
 namespace ReversiEngine {
 
@@ -49,6 +50,10 @@ namespace ReversiEngine {
         }
         int32_t value = -INF;
         std::vector<Cell> possible_moves = board.PossibleMoves();
+//        {
+//            auto old_moves = board.OldPossibleMoves();
+//            assert(possible_moves == old_moves);
+//        }
         if (possible_moves.empty()) {
             Board new_board = board.MakeMove(Cell{-1, -1});
             return -SmartEvaluation(new_board, depth - 1, -beta, -alpha);
