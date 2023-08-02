@@ -1,5 +1,7 @@
 #include "engine.h"
 
+#include <algorithm>
+
 namespace ReversiEngine {
 
     const int INF = 10000;
@@ -14,6 +16,12 @@ namespace ReversiEngine {
         if (possible_moves.empty()) {
             value = -SmartEvaluation(board.MakeMove({-1, -1}), depth - 1, -beta, -alpha);
             return {best_move, value};
+        }
+        if (depth >= 4) {
+            std::sort(possible_moves.begin(), possible_moves.end(), [board](auto& lhs, auto& rhs) {
+                return board.MakeMove(lhs).FinalEvaluation() <
+                       board.MakeMove(rhs).FinalEvaluation();
+            });
         }
         for (const Cell& cell : possible_moves) {
             Board new_board = board.MakeMove(cell);
@@ -45,6 +53,13 @@ namespace ReversiEngine {
             Board new_board = board.MakeMove(Cell{-1, -1});
             return -SmartEvaluation(new_board, depth - 1, -beta, -alpha);
         } else {
+            if (depth >= 4) {
+                std::sort(possible_moves.begin(), possible_moves.end(),
+                          [board](auto& lhs, auto& rhs) {
+                              return board.MakeMove(lhs).FinalEvaluation() <
+                                     board.MakeMove(rhs).FinalEvaluation();
+                          });
+            }
             for (const Cell& cell : possible_moves) {
                 Board new_board = board.MakeMove(cell);
                 int32_t candidate_value = -SmartEvaluation(new_board, depth - 1, -beta, -alpha);
