@@ -83,45 +83,60 @@ namespace ReversiEngine {
         return (player_ == Player::First ? 'x' : 'o');
     }
 
-    std::vector<Cell> Board::PossibleMoves() const {
-        std::vector<Cell> res;
-        for (int32_t row = 0; row < 8; ++row) {
-            for (int32_t col = 0; col < 8; ++col) {
-                int32_t position = Cell{row, col}.ToInt();
-                if (is_first_[position] || is_second_[position]) {
-                    continue;
-                }
-                bool possible = false;
-                for (int32_t drow = -1; drow <= 1 && !possible; ++drow) {
-                    for (int32_t dcol = -1; dcol <= 1 && !possible; ++dcol) {
-                        if (dcol != 0 || drow != 0) {
-                            possible = IsThereCaptures(row, col, drow, dcol);
-                        }
-                    }
-                }
-                if (possible) {
-                    res.push_back({row, col});
-                }
+    inline void Board::CheckLine(Cell first, int drow, int dcol,
+                                 std::bitset<64>& is_possible) const {
+        while (IsInBoundingBox(first)) {
+            if (!Same(player_)[first.ToInt()]) {
+                first.row += drow;
+                first.col += dcol;
+                continue;
             }
+            int32_t k = 1;
+            while (IsInBoundingBox(Cell{first.row + k * drow, first.col + k * dcol}) &&
+                   Opposite(player_)[Cell{first.row + k * drow, first.col + k * dcol}.ToInt()]) {
+                ++k;
+            }
+            if (k > 1 && IsInBoundingBox(Cell{first.row + k * drow, first.col + k * dcol}) &&
+                !is_first_[Cell{first.row + k * drow, first.col + k * dcol}.ToInt()]) {
+                is_possible[Cell{first.row + k * drow, first.col + k * dcol}.ToInt()] = true;
+            }
+            first = Cell{first.row + (k + 1) * drow, first.col + (k + 1) * dcol};
         }
-        return res;
     }
 
-    bool Board::IsThereCaptures(int32_t row, int32_t col, int32_t drow, int32_t dcol) const {
-        for (int32_t k = 1; IsInBoundingBox(Cell{row + k * drow, col + k * dcol}); ++k) {
-            int32_t position = Cell{row + k * drow, col + k * dcol}.ToInt();
-            if (!is_first_[position] && !is_second_[position]) {
-                return false;
-            }
-            if (Same(player_)[position]) {
-                if (k != 1) {
-                    return true;
-                } else {
-                    return false;
-                }
+    std::vector<Cell> Board::PossibleMoves() const {
+        std::bitset<64> is_possible;
+        for (int32_t row = 0; row < 8; ++row) {
+            CheckLine({row, 0}, 0, 1, is_possible);
+            CheckLine({row, 7}, 0, -1, is_possible);
+        }
+        for (int32_t col = 0; col < 8; ++col) {
+            CheckLine({0, col}, 1, 0, is_possible);
+            CheckLine({7, col}, -1, 0, is_possible);
+        }
+        for (int32_t col = 0; col < 8; ++col) {
+            CheckLine({0, col}, 1, 1, is_possible);
+            CheckLine({7 - col, 7}, -1, -1, is_possible);
+        }
+        for (int32_t row = 1; row < 8; ++row) {
+            CheckLine({row, 0}, 1, 1, is_possible);
+            CheckLine({7, 7 - row}, -1, -1, is_possible);
+        }
+        for (int32_t col = 1; col < 8; ++col) {
+            CheckLine({0, col}, 1, -1, is_possible);
+            CheckLine({col, 0}, -1, 1, is_possible);
+        }
+        for (int32_t row = 0; row < 8; ++row) {
+            CheckLine({row, 7}, 1, -1, is_possible);
+            CheckLine({7, row}, -1, 1, is_possible);
+        }
+        std::vector<Cell> result;
+        for (int32_t position = 0; position < 64; ++position) {
+            if (is_possible[position]) {
+                result.push_back({position >> 3, position & 7});
             }
         }
-        return false;
+        return result;
     }
 
     std::vector<Cell> Board::GetCaptures(int32_t row, int32_t col, int32_t drow,
@@ -165,6 +180,14 @@ namespace ReversiEngine {
             return is_first_;
         } else {
             return is_second_;
+        }
+    }
+
+    const std::bitset<64>& Board::Opposite(Player player) const {
+        if (player == First) {
+            return is_second_;
+        } else {
+            return is_first_;
         }
     }
 
