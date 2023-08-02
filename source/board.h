@@ -40,7 +40,8 @@ namespace ReversiEngine {
         [[nodiscard]] std::vector<Cell> GetCaptures(int32_t row, int32_t col, int32_t drow,
                                                     int32_t dcol) const;
 
-        void CheckLine(Cell first, int dcol, int drow, std::bitset<64>& is_possible) const;
+        void CheckLine(Cell first, int dcol, int drow, std::bitset<64>& is_possible,
+                       int32_t line_length) const;
 
         std::bitset<64> is_first_;
         std::bitset<64> is_second_;

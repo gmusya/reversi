@@ -83,52 +83,54 @@ namespace ReversiEngine {
         return (player_ == Player::First ? 'x' : 'o');
     }
 
-    inline void Board::CheckLine(Cell first, int drow, int dcol,
-                                 std::bitset<64>& is_possible) const {
-        while (IsInBoundingBox(first)) {
-            if (!Same(player_)[first.ToInt()]) {
-                first.row += drow;
-                first.col += dcol;
+    inline void Board::CheckLine(Cell first, int drow, int dcol, std::bitset<64>& is_possible,
+                                 int32_t line_length) const {
+        int32_t start_pos = first.ToInt();
+        int32_t to_add = Cell{drow, dcol}.ToInt();
+        int32_t current_position = 0;
+        while (current_position < line_length) {
+            if (!Same(player_)[start_pos + current_position * to_add]) {
+                ++current_position;
                 continue;
             }
             int32_t k = 1;
-            while (IsInBoundingBox(Cell{first.row + k * drow, first.col + k * dcol}) &&
-                   Opposite(player_)[Cell{first.row + k * drow, first.col + k * dcol}.ToInt()]) {
+            while (current_position + k < line_length &&
+                   Opposite(player_)[start_pos + to_add * (current_position + k)]) {
                 ++k;
             }
-            if (k > 1 && IsInBoundingBox(Cell{first.row + k * drow, first.col + k * dcol}) &&
-                !is_first_[Cell{first.row + k * drow, first.col + k * dcol}.ToInt()]) {
-                is_possible[Cell{first.row + k * drow, first.col + k * dcol}.ToInt()] = true;
+            if (k > 1 && current_position + k < line_length &&
+                !Same(player_)[start_pos + to_add * (current_position + k)]) {
+                is_possible[start_pos + to_add * (current_position + k)] = true;
             }
-            first = Cell{first.row + (k + 1) * drow, first.col + (k + 1) * dcol};
+            current_position += k + 1;
         }
     }
 
     std::vector<Cell> Board::PossibleMoves() const {
         std::bitset<64> is_possible;
         for (int32_t row = 0; row < 8; ++row) {
-            CheckLine({row, 0}, 0, 1, is_possible);
-            CheckLine({row, 7}, 0, -1, is_possible);
+            CheckLine({row, 0}, 0, 1, is_possible, 8);
+            CheckLine({row, 7}, 0, -1, is_possible, 8);
         }
         for (int32_t col = 0; col < 8; ++col) {
-            CheckLine({0, col}, 1, 0, is_possible);
-            CheckLine({7, col}, -1, 0, is_possible);
+            CheckLine({0, col}, 1, 0, is_possible, 8);
+            CheckLine({7, col}, -1, 0, is_possible, 8);
         }
         for (int32_t col = 0; col < 8; ++col) {
-            CheckLine({0, col}, 1, 1, is_possible);
-            CheckLine({7 - col, 7}, -1, -1, is_possible);
+            CheckLine({0, col}, 1, 1, is_possible, 8 - col);
+            CheckLine({7 - col, 7}, -1, -1, is_possible, 8 - col);
         }
         for (int32_t row = 1; row < 8; ++row) {
-            CheckLine({row, 0}, 1, 1, is_possible);
-            CheckLine({7, 7 - row}, -1, -1, is_possible);
+            CheckLine({row, 0}, 1, 1, is_possible, 8 - row);
+            CheckLine({7, 7 - row}, -1, -1, is_possible, 8 - row);
         }
         for (int32_t col = 1; col < 8; ++col) {
-            CheckLine({0, col}, 1, -1, is_possible);
-            CheckLine({col, 0}, -1, 1, is_possible);
+            CheckLine({0, col}, 1, -1, is_possible, col + 1);
+            CheckLine({col, 0}, -1, 1, is_possible, col + 1);
         }
         for (int32_t row = 0; row < 8; ++row) {
-            CheckLine({row, 7}, 1, -1, is_possible);
-            CheckLine({7, row}, -1, 1, is_possible);
+            CheckLine({row, 7}, 1, -1, is_possible, 8 - row);
+            CheckLine({7, row}, -1, 1, is_possible, 8 - row);
         }
         std::vector<Cell> result;
         for (int32_t position = 0; position < 64; ++position) {
