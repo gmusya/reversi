@@ -12,6 +12,8 @@ namespace ReversiEngine {
     public:
         Board();
 
+        void PossibleMoves(std::vector<Cell>& result) const;
+
         [[nodiscard]] std::vector<Cell> PossibleMoves() const;
 
         [[nodiscard]] char MySymbol() const;
@@ -27,6 +29,8 @@ namespace ReversiEngine {
         std::vector<Cell> OldPossibleMoves() const;
 
     private:
+        void PlacePiece(size_t position, Player player);
+
         void PlacePiece(const Cell& cell, Player player);
 
         static bool IsInBoundingBox(const Cell& cell);
@@ -39,7 +43,7 @@ namespace ReversiEngine {
 
         [[nodiscard]] const std::bitset<64>& Opposite(Player player) const;
 
-        [[nodiscard]] std::vector<Cell> GetCaptures(int32_t row, int32_t col, int32_t drow,
+        [[nodiscard]] std::bitset<64> GetCaptures(int32_t row, int32_t col, int32_t drow,
                                                     int32_t dcol) const;
 
         void CheckLine(Cell first, int dcol, int drow, std::bitset<64>& is_possible,

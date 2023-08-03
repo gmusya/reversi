@@ -27,6 +27,11 @@ namespace ReversiEngine {
         player_ = First;
     }
 
+    void Board::PlacePiece(size_t position, Player player) {
+        Same(player)[position] = true;
+        Opposite(player)[position] = false;
+    }
+
     void Board::PlacePiece(const Cell& cell, Player player) {
         int32_t position = cell.ToInt();
         Same(player)[position] = true;
@@ -64,15 +69,18 @@ namespace ReversiEngine {
             board.player_ = (player_ == Player::First ? Player::Second : Player::First);
             return board;
         }
+        std::bitset<64> captured;
         for (int32_t dcol = -1; dcol <= 1; ++dcol) {
             for (int32_t drow = -1; drow <= 1; ++drow) {
                 if (dcol == 0 && drow == 0) {
                     continue;
                 }
-                for (const Cell& captured_cell : GetCaptures(row, col, drow, dcol)) {
-                    board.PlacePiece(captured_cell, player_);
-                }
+                captured |= GetCaptures(row, col, drow, dcol);
             }
+        }
+        for (size_t position = captured._Find_first(); position < 64;
+             position = captured._Find_next(position)) {
+            board.PlacePiece(position, player_);
         }
         board.PlacePiece(cell, player_);
         board.player_ = (player_ == Player::First ? Player::Second : Player::First);
@@ -109,9 +117,8 @@ namespace ReversiEngine {
     }
 
     namespace {
-        std::vector<Cell> BitsetToVector(const std::bitset<64>& is_possible) {
-            std::vector<Cell> result;
-            result.reserve(is_possible.count());
+        void BitsetToVector(const std::bitset<64>& is_possible, std::vector<Cell>& result) {
+            result.clear();
             for (size_t position = is_possible._Find_first(); position < 64;
                  position = is_possible._Find_next(position)) {
                 if (is_possible[position]) {
@@ -119,11 +126,10 @@ namespace ReversiEngine {
                                       static_cast<int32_t>(position & 7)});
                 }
             }
-            return result;
         }
     }// namespace
 
-    std::vector<Cell> Board::PossibleMoves() const {
+    void Board::PossibleMoves(std::vector<Cell>& result) const {
         std::bitset<64> is_possible;
         for (int32_t row = 0; row < 8; ++row) {
             CheckLine({row, 0}, 0, 1, is_possible, 8);
@@ -149,7 +155,7 @@ namespace ReversiEngine {
             CheckLine({row, 7}, 1, -1, is_possible, 8 - row);
             CheckLine({7, row}, -1, 1, is_possible, 8 - row);
         }
-        return BitsetToVector(is_possible);
+        BitsetToVector(is_possible, result);
     }
 
     std::vector<Cell> Board::OldPossibleMoves() const {
@@ -193,9 +199,9 @@ namespace ReversiEngine {
         return false;
     }
 
-    std::vector<Cell> Board::GetCaptures(int32_t row, int32_t col, int32_t drow,
+    std::bitset<64> Board::GetCaptures(int32_t row, int32_t col, int32_t drow,
                                          int32_t dcol) const {
-        std::vector<Cell> res;
+        std::bitset<64> res;
         for (int32_t k = 1; IsInBoundingBox(Cell{row + k * drow, col + k * dcol}); ++k) {
             int32_t position = Cell{row + k * drow, col + k * dcol}.ToInt();
             if (!is_first_[position] && !is_second_[position]) {
@@ -204,7 +210,7 @@ namespace ReversiEngine {
             if (Same(player_)[position]) {
                 return res;
             }
-            res.push_back({row + k * drow, col + k * dcol});
+            res[position] = true;
         }
         return {};
     }
@@ -266,6 +272,12 @@ namespace ReversiEngine {
             os << static_cast<char>('a' + col) << ' ';
         }
         return os;
+    }
+
+    std::vector<Cell> Board::PossibleMoves() const {
+        std::vector<Cell> result;
+        PossibleMoves(result);
+        return result;
     }
 
 }// namespace ReversiEngine

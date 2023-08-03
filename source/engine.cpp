@@ -13,7 +13,8 @@ namespace ReversiEngine {
         int32_t alpha = -INF;
         int32_t beta = INF;
         Cell best_move{-1, -1};
-        std::vector<Cell> possible_moves = board.PossibleMoves();
+        std::vector<Cell>& possible_moves = buffers[depth];
+        board.PossibleMoves(possible_moves);
         if (possible_moves.empty()) {
             value = -SmartEvaluation(board.MakeMove({-1, -1}), depth - 1, -beta, -alpha);
             return {best_move, value};
@@ -50,7 +51,9 @@ namespace ReversiEngine {
             return board.FinalEvaluation();
         }
         int32_t value = -INF;
-        std::vector<Cell> possible_moves = board.PossibleMoves();
+
+        std::vector<Cell>& possible_moves = buffers[depth];
+        board.PossibleMoves(possible_moves);
 //        {
 //            auto old_moves = board.OldPossibleMoves();
 //            assert(possible_moves == old_moves);
