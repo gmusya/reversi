@@ -19,13 +19,18 @@ namespace ReversiEngine {
             value = -SmartEvaluation(board.MakeMove({-1, -1}), depth - 1, -beta, -alpha);
             return {best_move, value};
         }
+        auto& buffer = buffers2[depth];
+        buffer.resize(possible_moves.size());
+        for (size_t i = 0; i < possible_moves.size(); ++i) {
+            buffer[i] = {i, board.MakeMove(possible_moves[i]).FinalEvaluation()};
+        }
         if (depth >= 4) {
-            std::sort(possible_moves.begin(), possible_moves.end(), [board](auto& lhs, auto& rhs) {
-                return board.MakeMove(lhs).FinalEvaluation() <
-                       board.MakeMove(rhs).FinalEvaluation();
+            std::sort(buffer.begin(), buffer.end(), [](auto& lhs, auto& rhs) {
+                return lhs.second < rhs.second;
             });
         }
-        for (const Cell& cell : possible_moves) {
+        for (size_t i = 0; i < possible_moves.size(); ++i) {
+            const Cell& cell = possible_moves[buffer[i].first];
             Board new_board = board.MakeMove(cell);
             int32_t candidate_value = -SmartEvaluation(new_board, depth - 1, -beta, -alpha);
             if (value < candidate_value) {
@@ -54,22 +59,35 @@ namespace ReversiEngine {
 
         std::vector<Cell>& possible_moves = buffers[depth];
         board.PossibleMoves(possible_moves);
-//        {
-//            auto old_moves = board.OldPossibleMoves();
-//            assert(possible_moves == old_moves);
-//        }
+        //        {
+        //            auto old_moves = board.OldPossibleMoves();
+        //            assert(possible_moves == old_moves);
+        //        }
         if (possible_moves.empty()) {
             Board new_board = board.MakeMove(Cell{-1, -1});
             return -SmartEvaluation(new_board, depth - 1, -beta, -alpha);
-        } else {
-            if (depth >= 4) {
-                std::sort(possible_moves.begin(), possible_moves.end(),
-                          [board](auto& lhs, auto& rhs) {
-                              return board.MakeMove(lhs).FinalEvaluation() <
-                                     board.MakeMove(rhs).FinalEvaluation();
-                          });
+        }
+        if (depth >= 4) {
+            auto& buffer = buffers2[depth];
+            buffer.resize(possible_moves.size());
+            for (size_t i = 0; i < possible_moves.size(); ++i) {
+                buffer[i] = {i, board.MakeMove(possible_moves[i]).FinalEvaluation()};
             }
-            for (const Cell& cell : possible_moves) {
+            if (buffer.size() >= 4) {
+                std::nth_element(buffer.begin(), buffer.begin() + 4, buffer.end(),
+                                 [](auto& lhs, auto& rhs) {
+                                     return lhs.second < rhs.second;
+                                 });
+                std::sort(buffer.begin(), buffer.begin() + 4, [](auto& lhs, auto& rhs) {
+                    return lhs.second < rhs.second;
+                });
+            } else {
+                std::sort(buffer.begin(), buffer.end(), [](auto& lhs, auto& rhs) {
+                    return lhs.second < rhs.second;
+                });
+            }
+            for (size_t i = 0; i < possible_moves.size(); ++i) {
+                const Cell& cell = possible_moves[buffer[i].first];
                 Board new_board = board.MakeMove(cell);
                 int32_t candidate_value = -SmartEvaluation(new_board, depth - 1, -beta, -alpha);
                 if (value < candidate_value) {
@@ -79,8 +97,24 @@ namespace ReversiEngine {
                     alpha = value;
                 }
                 if (value >= beta) {
+                    //                    std::cout << i + 1 << "/" << possible_moves.size() << std::endl;
                     return value;
                 }
+            }
+            return value;
+        }
+        for (size_t i = 0; i < possible_moves.size(); ++i) {
+            const Cell& cell = possible_moves[i];
+            Board new_board = board.MakeMove(cell);
+            int32_t candidate_value = -SmartEvaluation(new_board, depth - 1, -beta, -alpha);
+            if (value < candidate_value) {
+                value = candidate_value;
+            }
+            if (alpha < value) {
+                alpha = value;
+            }
+            if (value >= beta) {
+                return value;
             }
         }
         return value;
