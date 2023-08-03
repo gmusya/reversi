@@ -64,9 +64,12 @@ namespace ReversiEngine {
                 result = best_move_info.first;
                 int32_t evaluation = best_move_info.second;
                 total_time += time;
+                auto nodes_per_sec = static_cast<int64_t>(static_cast<double>(engine.nodes) /
+                                                          total_time.seconds);
                 std::cout << "[depth=" << depth << ", eval=" << evaluation << "]"
                           << ": " << result << " (" << total_time << ", " << engine.nodes
-                          << " nodes)" << std::endl;
+                          << " nodes, " << nodes_per_sec << " nodes/sec"
+                          << ")" << std::endl;
             }
         };
         std::jthread th(foo);
