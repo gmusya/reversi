@@ -22,6 +22,8 @@ namespace ReversiEngine {
 
         [[nodiscard]] int32_t FinalEvaluation() const;
 
+        [[nodiscard]] int32_t OldFinalEvaluation() const;
+
         [[nodiscard]] bool GameEnded() const;
 
         friend std::ostream& operator<<(std::ostream& os, const Board& board);

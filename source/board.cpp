@@ -42,7 +42,7 @@ namespace ReversiEngine {
         return (0 <= cell.col && cell.col <= 7 && 0 <= cell.row && cell.row <= 7);
     }
 
-    int32_t Board::FinalEvaluation() const {
+    int32_t Board::OldFinalEvaluation() const {
         int32_t result = 0;
         for (int32_t row = 0; row < 8; ++row) {
             for (int32_t col = 0; col < 8; ++col) {
@@ -53,6 +53,27 @@ namespace ReversiEngine {
                     result -= CELL_COST[row][col];
                 }
             }
+        }
+        if (player_ == First) {
+            return result;
+        } else {
+            return -result;
+        }
+    }
+
+    int32_t Board::FinalEvaluation() const {
+        int32_t result = 0;
+        for (size_t position = is_first_._Find_first(); position < 64;
+             position = is_first_._Find_next(position)) {
+            size_t row = position >> 3;
+            size_t col = position & 7;
+            result += CELL_COST[row][col];
+        }
+        for (size_t position = is_second_._Find_first(); position < 64;
+             position = is_second_._Find_next(position)) {
+            size_t row = position >> 3;
+            size_t col = position & 7;
+            result -= CELL_COST[row][col];
         }
         if (player_ == First) {
             return result;
