@@ -20,6 +20,7 @@ namespace ReversiEngine {
     }// namespace
 
     Board::Board() {
+        eval = 0;
         PlacePiece(Cell{4, 3}, First);
         PlacePiece(Cell{3, 4}, First);
         PlacePiece(Cell{3, 3}, Second);
@@ -28,14 +29,25 @@ namespace ReversiEngine {
     }
 
     void Board::PlacePiece(size_t position, Player player) {
+        if (is_first_[position]) {
+            eval -= CELL_COST[position >> 3][position & 7];
+        }
+        if (is_second_[position]) {
+            eval += CELL_COST[position >> 3][position & 7];
+        }
         Same(player)[position] = true;
         Opposite(player)[position] = false;
+        if (is_first_[position]) {
+            eval += CELL_COST[position >> 3][position & 7];
+        }
+        if (is_second_[position]) {
+            eval -= CELL_COST[position >> 3][position & 7];
+        }
     }
 
     void Board::PlacePiece(const Cell& cell, Player player) {
         int32_t position = cell.ToInt();
-        Same(player)[position] = true;
-        Opposite(player)[position] = false;
+        PlacePiece(position, player);
     }
 
     bool Board::IsInBoundingBox(const Cell& cell) {
@@ -53,27 +65,6 @@ namespace ReversiEngine {
                     result -= CELL_COST[row][col];
                 }
             }
-        }
-        if (player_ == First) {
-            return result;
-        } else {
-            return -result;
-        }
-    }
-
-    int32_t Board::FinalEvaluation() const {
-        int32_t result = 0;
-        for (size_t position = is_first_._Find_first(); position < 64;
-             position = is_first_._Find_next(position)) {
-            size_t row = position >> 3;
-            size_t col = position & 7;
-            result += CELL_COST[row][col];
-        }
-        for (size_t position = is_second_._Find_first(); position < 64;
-             position = is_second_._Find_next(position)) {
-            size_t row = position >> 3;
-            size_t col = position & 7;
-            result -= CELL_COST[row][col];
         }
         if (player_ == First) {
             return result;
@@ -299,6 +290,10 @@ namespace ReversiEngine {
         std::vector<Cell> result;
         PossibleMoves(result);
         return result;
+    }
+
+    int32_t Board::FinalEvaluation() const {
+        return (player_ == First ? eval : -eval);
     }
 
 }// namespace ReversiEngine

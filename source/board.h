@@ -56,6 +56,7 @@ namespace ReversiEngine {
         std::bitset<64> is_first_;
         std::bitset<64> is_second_;
         Player player_;
+        int32_t eval;
     };
 
 }// namespace ReversiEngine
