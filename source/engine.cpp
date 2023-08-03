@@ -1,7 +1,6 @@
 #include "engine.h"
 
 #include <algorithm>
-#include <cassert>
 
 namespace ReversiEngine {
 
@@ -9,6 +8,7 @@ namespace ReversiEngine {
 
     std::pair<ReversiEngine::Cell, int32_t>
     ReversiEngine::Engine::GetBestMove(ReversiEngine::Board board, int32_t depth) const {
+        ++nodes;
         int32_t value = -INF;
         int32_t alpha = -INF;
         int32_t beta = INF;
@@ -40,6 +40,7 @@ namespace ReversiEngine {
 
     int32_t ReversiEngine::Engine::SmartEvaluation(ReversiEngine::Board board, int32_t depth,
                                                    int32_t alpha, int32_t beta) const {
+        ++nodes;
         static int counter = 0;
         ++counter;
         if ((counter & 64) == 0 && stop) {

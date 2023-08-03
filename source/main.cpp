@@ -65,7 +65,8 @@ namespace ReversiEngine {
                 int32_t evaluation = best_move_info.second;
                 total_time += time;
                 std::cout << "[depth=" << depth << ", eval=" << evaluation << "]"
-                          << ": " << result << " (" << total_time << ")" << std::endl;
+                          << ": " << result << " (" << total_time << ", " << engine.nodes
+                          << " nodes)" << std::endl;
             }
         };
         std::jthread th(foo);

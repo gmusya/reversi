@@ -13,6 +13,7 @@ namespace ReversiEngine {
         [[nodiscard]] int32_t SmartEvaluation(Board board, int32_t depth, int32_t alpha,
                                               int32_t beta) const;
 
+        mutable int64_t nodes = 0;
         std::atomic<bool> stop;
     };
 }// namespace ReversiEngine
