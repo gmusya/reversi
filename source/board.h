@@ -2,8 +2,8 @@
 
 #include <vector>
 
+#include "bitset64.h"
 #include "cell.h"
-#include <bitset>
 
 namespace ReversiEngine {
     enum Player { First, Second };
@@ -30,6 +30,8 @@ namespace ReversiEngine {
 
         std::vector<Cell> OldPossibleMoves() const;
 
+        void InitPrecalc() const;
+
     private:
         void PlacePiece(size_t position, Player player);
 
@@ -37,26 +39,39 @@ namespace ReversiEngine {
 
         static bool IsInBoundingBox(const Cell& cell);
 
-        std::bitset<64>& Same(Player player);
+        Bitset64& Same(Player player);
 
-        std::bitset<64>& Opposite(Player player);
+        Bitset64& Opposite(Player player);
 
-        [[nodiscard]] const std::bitset<64>& Same(Player player) const;
+        [[nodiscard]] const Bitset64& Same(Player player) const;
 
-        [[nodiscard]] const std::bitset<64>& Opposite(Player player) const;
+        [[nodiscard]] const Bitset64& Opposite(Player player) const;
 
-        [[nodiscard]] std::bitset<64> GetCaptures(int32_t row, int32_t col, int32_t drow,
-                                                    int32_t dcol) const;
+        Bitset64& SameVertical(Player player);
 
-        void CheckLine(Cell first, int dcol, int drow, std::bitset<64>& is_possible,
+        Bitset64& OppositeVertical(Player player);
+
+        [[nodiscard]] const Bitset64& SameVertical(Player player) const;
+
+        [[nodiscard]] const Bitset64& OppositeVertical(Player player) const;
+
+        [[nodiscard]] Bitset64 GetCaptures(int32_t row, int32_t col, int32_t drow,
+                                           int32_t dcol) const;
+
+        void CheckLine(Cell first, int dcol, int drow, Bitset64& is_possible,
                        int32_t line_length) const;
 
         bool IsThereCaptures(int32_t row, int32_t col, int32_t drow, int32_t dcol) const;
 
-        std::bitset<64> is_first_;
-        std::bitset<64> is_second_;
+        Bitset64 is_first_;
+        Bitset64 is_second_;
+        Bitset64 is_first_vertical;
+        Bitset64 is_second_vertical;
         Player player_;
         int32_t eval;
+        void PossibleMovesDiagonal(Bitset64& is_possible) const;
+        void PossibleMovesVertical(Bitset64& is_possible) const;
+        void PossibleMovesHorizontal(Bitset64& is_possible) const;
     };
 
 }// namespace ReversiEngine

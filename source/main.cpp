@@ -80,6 +80,7 @@ namespace ReversiEngine {
 
     void StartGame(Player player) {
         Board board;
+        board.InitPrecalc();
         if (player == First) {
             std::cout << board << std::endl;
             ReadAndDoMove(board);
