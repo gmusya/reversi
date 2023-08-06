@@ -1,7 +1,6 @@
 #include "board.h"
 
 #include <array>
-#include <cassert>
 
 std::array<Bitset64, 1 << 16> precalced_check_line;
 std::array<std::array<int32_t, 1 << 16>, 8> precalced_row_costs;
@@ -32,48 +31,26 @@ namespace ReversiEngine {
                 7, 15, 23, 31, 39, 47, 55, 63
         };
 
-        const std::array<int, 64> CONV_POSITION_DIAG1_NUM = {
-                 7,  6,  5,  4,  3,  2,  1,  0,
-                 8,  7,  6,  5,  4,  3,  2,  1,
-                 9,  8,  7,  6,  5,  4,  3,  2,
-                10,  9,  8,  7,  6,  5,  4,  3,
-                11, 10,  9,  8,  7,  6,  5,  4,
-                12, 11, 10,  9,  8,  7,  6,  5,
-                13, 12, 11, 10,  9,  8,  7,  6,
-                14, 13, 12, 11, 10,  9,  8,  7
-        };
-
         const std::array<int, 64> CONV_POSITION_DIAG1_POS = {
-                0, 0, 0, 0, 0, 0, 0, 0,
-                0, 1, 1, 1, 1, 1, 1, 1,
-                0, 1, 2, 2, 2, 2, 2, 2,
-                0, 1, 2, 3, 3, 3, 3, 3,
-                0, 1, 2, 3, 4, 4, 4, 4,
-                0, 1, 2, 3, 4, 5, 5, 5,
-                0, 1, 2, 3, 4, 5, 6, 6,
-                0, 1, 2, 3, 4, 5, 6, 7
-        };
-
-        const std::array<int, 64> CONV_POSITION_DIAG2_NUM = {
-                0,  1,  2,  3,  4,  5,  6,  7,
-                1,  2,  3,  4,  5,  6,  7,  8,
-                2,  3,  4,  5,  6,  7,  8,  9,
-                3,  4,  5,  6,  7,  8,  9, 10,
-                4,  5,  6,  7,  8,  9, 10, 11,
-                5,  6,  7,  8,  9, 10, 11, 12,
-                6,  7,  8,  9, 10, 11, 12, 13,
-                7,  8,  9, 10, 11, 12, 13, 14
+                28, 21, 15, 10,  6,  3,  1,  0,
+                36, 29, 22, 16, 11,  7,  4,  2,
+                43, 37, 30, 23, 17, 12,  8,  5,
+                49, 44, 38, 31, 24, 18, 13,  9,
+                54, 50, 45, 39, 32, 25, 19, 14,
+                58, 55, 51, 46, 40, 33, 26, 20,
+                61, 59, 56, 52, 47, 41, 34, 27,
+                63, 62, 60, 57, 53, 48, 42, 35
         };
 
         const std::array<int, 64> CONV_POSITION_DIAG2_POS = {
-                0, 0, 0, 0, 0, 0, 0, 0,
-                1, 1, 1, 1, 1, 1, 1, 0,
-                2, 2, 2, 2, 2, 2, 1, 0,
-                3, 3, 3, 3, 3, 2, 1, 0,
-                4, 4, 4, 4, 3, 2, 1, 0,
-                5, 5, 5, 4, 3, 2, 1, 0,
-                6, 6, 5, 4, 3, 2, 1, 0,
-                7, 6, 5, 4, 3, 2, 1, 0
+                 0,  1,  3,  6, 10, 15, 21, 28,
+                 2,  4,  7, 11, 16, 22, 29, 36,
+                 5,  8, 12, 17, 23, 30, 37, 43,
+                 9, 13, 18, 24, 31, 38, 44, 49,
+                14, 19, 25, 32, 39, 45, 50, 54,
+                20, 26, 33, 40, 46, 51, 55, 58,
+                27, 34, 41, 47, 52, 56, 59, 61,
+                35, 42, 48, 53, 57, 60, 62, 63
         };
         // clang-format on
     }// namespace
@@ -177,48 +154,25 @@ namespace ReversiEngine {
     }
 
 
-    void Board::PlacePiece(size_t position, Player player) {
+    inline void Board::PlacePiece(size_t position, Player player) {
         bool player_is_first = (player == First);
         is_first_[position] = player_is_first;
         is_second_[position] = !player_is_first;
         is_first_vertical[CONV_POSITION_COL[position]] = player_is_first;
         is_second_vertical[CONV_POSITION_COL[position]] = !player_is_first;
-        is_first_diagonal1[CONV_POSITION_DIAG1_NUM[position]][CONV_POSITION_DIAG1_POS[position]] =
-                player_is_first;
-        is_second_diagonal1[CONV_POSITION_DIAG1_NUM[position]][CONV_POSITION_DIAG1_POS[position]] =
-                !player_is_first;
-        is_first_diagonal2[CONV_POSITION_DIAG2_NUM[position]][CONV_POSITION_DIAG2_POS[position]] =
-                player_is_first;
-        is_second_diagonal2[CONV_POSITION_DIAG2_NUM[position]][CONV_POSITION_DIAG2_POS[position]] =
-                !player_is_first;
+        is_first_diagonal1[CONV_POSITION_DIAG1_POS[position]] = player_is_first;
+        is_second_diagonal1[CONV_POSITION_DIAG1_POS[position]] = !player_is_first;
+        is_first_diagonal2[CONV_POSITION_DIAG2_POS[position]] = player_is_first;
+        is_second_diagonal2[CONV_POSITION_DIAG2_POS[position]] = !player_is_first;
     }
 
-    void Board::PlacePiece(const Cell& cell, Player player) {
+    inline void Board::PlacePiece(const Cell& cell, Player player) {
         int32_t position = cell.ToInt();
         PlacePiece(position, player);
     }
 
     bool Board::IsInBoundingBox(const Cell& cell) {
         return (0 <= cell.col && cell.col <= 7 && 0 <= cell.row && cell.row <= 7);
-    }
-
-    int32_t Board::OldFinalEvaluation() const {
-        int32_t result = 0;
-        for (int32_t row = 0; row < 8; ++row) {
-            for (int32_t col = 0; col < 8; ++col) {
-                Cell cell{row, col};
-                if (is_first_[cell.ToInt()]) {
-                    result += CONV_POSITION_ROW[(row << 3) + col];
-                } else if (is_second_[cell.ToInt()]) {
-                    result -= CONV_POSITION_ROW[(row << 3) + col];
-                }
-            }
-        }
-        if (player_ == First) {
-            return result;
-        } else {
-            return -result;
-        }
     }
 
     Board Board::MakeMove(const Cell& cell) const {
@@ -251,31 +205,6 @@ namespace ReversiEngine {
         return (player_ == Player::First ? 'x' : 'o');
     }
 
-    inline void Board::CheckLine(Cell first, int drow, int dcol, Bitset64& is_possible,
-                                 int32_t line_length) const {
-        int32_t start_pos = first.ToInt();
-        int32_t to_add = Cell{drow, dcol}.ToInt();
-        int32_t current_position = 0;
-        while (current_position + 2 < line_length) {
-            if (!Same(player_)[start_pos + current_position * to_add]) {
-                ++current_position;
-                continue;
-            }
-            int32_t k = 1;
-            while (current_position + k < line_length &&
-                   Opposite(player_)[start_pos + to_add * (current_position + k)]) {
-                ++k;
-            }
-            if (k > 1 && current_position + k < line_length &&
-                !Same(player_)[start_pos + to_add * (current_position + k)]) {
-                is_possible[start_pos + to_add * (current_position + k)] = true;
-                current_position += k + 1;
-            } else {
-                current_position += k;
-            }
-        }
-    }
-
     namespace {
         void BitsetToVector(const Bitset64& is_possible, std::vector<Cell>& result) {
             result.clear();
@@ -289,124 +218,52 @@ namespace ReversiEngine {
         }
     }// namespace
 
-    inline void Board::PossibleMovesHorizontal(Bitset64& is_possible) const {
-        auto first_set = Same(player_);
-        auto second_set = Opposite(player_);
-        auto first = first_set.to_ullong();
-        auto second = second_set.to_ullong();
-        for (int32_t row = 0; row < 8; ++row) {
-            int shift = 8 * row;
-            auto first_mask = (first >> shift) & ((1 << 8) - 1);
-            auto second_mask = (second >> shift) & ((1 << 8) - 1);
-            auto x = precalced_check_line[(first_mask << 8) + second_mask];
-            is_possible |= Bitset64(x.to_ullong() << shift);
-        }
-    }
+    namespace {
 
-    inline void Board::PossibleMovesVertical(Bitset64& is_possible) const {
-        auto first_set = Same(player_);
-        auto second_set = Opposite(player_);
-        auto value_first = first_set.to_ullong();
-        auto value_second = second_set.to_ullong();
-        for (int32_t col = 0; col < 8; ++col) {
-            auto x = (value_first >> col);
-            auto first_mask = (x & 1) + (((x >> 8) & 1) << 1) + (((x >> 16) & 1) << 2) +
-                              ((((x >> 24) & 1) << 3)) + (((x >> 32) & 1) << 4) +
-                              (((x >> 40) & 1) << 5) + (((x >> 48) & 1) << 6) +
-                              (((x >> 56) & 1) << 7);
-            x = (value_second >> col);
-            auto second_mask = (x & 1) + (((x >> 8) & 1) << 1) + (((x >> 16) & 1) << 2) +
-                               ((((x >> 24) & 1) << 3)) + (((x >> 32) & 1) << 4) +
-                               (((x >> 40) & 1) << 5) + (((x >> 48) & 1) << 6) +
-                               (((x >> 56) & 1) << 7);
-            auto res = precalced_check_line[(first_mask << 8) + second_mask];
-            for (int32_t i = 0; i < 8; ++i) {
-                if (res[i]) {
-                    is_possible[(i << 3) + col] = true;
-                }
-            }
-        }
-    }
+        constexpr std::array<uint64_t, 8> offsets_col_diag1 = {28, 21, 15, 10, 6, 3, 0, 0};
 
-    inline void Board::PossibleMovesDiagonal(Bitset64& is_possible) const {
-        auto first_set = Same(player_);
-        auto second_set = Opposite(player_);
-        auto value_first = first_set.to_ullong();
-        auto value_second = second_set.to_ullong();
-        for (int32_t col = 0; col < 6; ++col) {
+        constexpr std::array<uint64_t, 8> col_diag1 = {(1ull << 36) - (1ull << 28),
+                                                       (1ull << 28) - (1ull << 21),
+                                                       (1ull << 21) - (1ull << 15),
+                                                       (1ull << 15) - (1ull << 10),
+                                                       (1ull << 10) - (1ull << 6),
+                                                       (1ull << 6) - (1ull << 3),
+                                                       0,
+                                                       0};
 
-            auto x = (value_first >> col);
-            uint64_t first_mask = 0;
-            for (int32_t i = 0; i < 8 - col; ++i) {
-                first_mask |= ((x >> (i * 9)) & 1) << i;
-            }
-            x = (value_second >> col);
-            uint64_t second_mask = 0;
-            for (int32_t i = 0; i < 8 - col; ++i) {
-                second_mask |= ((x >> (i * 9)) & 1) << i;
-            }
-            auto res = precalced_check_line[(first_mask << 8) + second_mask];
-            for (int32_t i = 0; i < 8 - col; ++i) {
-                if (res[i]) {
-                    is_possible[(i << 3) + col + i] = true;
-                }
-            }
-        }
-        for (int32_t row = 1; row < 6; ++row) {
-            auto x = (value_first >> (row << 3));
-            uint64_t first_mask = 0;
-            for (int32_t i = 0; i < 8 - row; ++i) {
-                first_mask |= ((x >> (i * 9)) & 1) << i;
-            }
-            x = (value_second >> (row << 3));
-            uint64_t second_mask = 0;
-            for (int32_t i = 0; i < 8 - row; ++i) {
-                second_mask |= ((x >> (i * 9)) & 1) << i;
-            }
-            auto res = precalced_check_line[(first_mask << 8) + second_mask];
-            for (int32_t i = 0; i < 8 - row; ++i) {
-                if (res[i]) {
-                    is_possible[((i + row) << 3) + i] = true;
-                }
-            }
-        }
-        for (int32_t col = 2; col < 8; ++col) {
-            auto x = (value_first >> col);
-            uint64_t first_mask = 0;
-            for (int32_t i = 0; i < col + 1; ++i) {
-                first_mask |= ((x >> (i * 7)) & 1) << i;
-            }
-            x = (value_second >> col);
-            uint64_t second_mask = 0;
-            for (int32_t i = 0; i < col + 1; ++i) {
-                second_mask |= ((x >> (i * 7)) & 1) << i;
-            }
-            auto res = precalced_check_line[(first_mask << 8) + second_mask];
-            for (int32_t i = 0; i < col + 1; ++i) {
-                if (res[i]) {
-                    is_possible[(i << 3) + col - i] = true;
-                }
-            }
-        }
-        for (int32_t row = 1; row < 6; ++row) {
-            auto x = (value_first >> ((row << 3) + 7));
-            uint64_t first_mask = 0;
-            for (int32_t i = 0; i < 8 - row; ++i) {
-                first_mask |= ((x >> (i * 7)) & 1) << i;
-            }
-            x = (value_second >> ((row << 3) + 7));
-            uint64_t second_mask = 0;
-            for (int32_t i = 0; i < 8 - row; ++i) {
-                second_mask |= ((x >> (i * 7)) & 1) << i;
-            }
-            auto res = precalced_check_line[(first_mask << 8) + second_mask];
-            for (int32_t i = 0; i < 8 - row; ++i) {
-                if (res[i]) {
-                    is_possible[((row + i) << 3) + 7 - i] = true;
-                }
-            }
-        }
-    }
+        constexpr std::array<uint64_t, 8> offsets_row_diag1 = {0, 36, 43, 49, 54, 58, 0, 0};
+
+        constexpr std::array<uint64_t, 8> row_diag1 = {0,
+                                                       (1ull << 43) - (1ull << 36),
+                                                       (1ull << 49) - (1ull << 43),
+                                                       (1ull << 54) - (1ull << 49),
+                                                       (1ull << 58) - (1ull << 54),
+                                                       (1ull << 61) - (1ull << 58),
+                                                       0,
+                                                       0};
+
+        constexpr std::array<uint64_t, 8> offsets_col_diag2 = {0, 0, 3, 6, 10, 15, 21, 28};
+
+        constexpr std::array<uint64_t, 8> col_diag2 = {0,
+                                                       0,
+                                                       (1ull << 6) - (1ull << 3),
+                                                       (1ull << 10) - (1ull << 6),
+                                                       (1ull << 15) - (1ull << 10),
+                                                       (1ull << 21) - (1ull << 15),
+                                                       (1ull << 28) - (1ull << 21),
+                                                       (1ull << 36) - (1ull << 28)};
+
+        constexpr std::array<uint64_t, 8> offsets_row_diag2 = {28, 36, 43, 49, 54, 58, 0, 0};
+
+        constexpr std::array<uint64_t, 8> row_diag2 = {(1ull << 36) - (1ull << 28),
+                                                       (1ull << 43) - (1ull << 36),
+                                                       (1ull << 49) - (1ull << 43),
+                                                       (1ull << 54) - (1ull << 49),
+                                                       (1ull << 58) - (1ull << 54),
+                                                       (1ull << 61) - (1ull << 58),
+                                                       0,
+                                                       0};
+    }// namespace
 
     void Board::PossibleMoves(std::vector<Cell>& result) const {
         Bitset64 is_possible;
@@ -437,9 +294,11 @@ namespace ReversiEngine {
             }
         }
         for (int32_t col = 0; col < 6; ++col) {
-            int diag1 = CONV_POSITION_DIAG1_NUM[col];
-            uint64_t first_mask = SameDiagonal1(player_)[diag1].to_ullong();
-            uint64_t second_mask = OppositeDiagonal1(player_)[diag1].to_ullong();
+            uint64_t val = col_diag1[col];
+            uint64_t first_mask =
+                    (SameDiagonal1(player_).to_ullong() & val) >> offsets_col_diag1[col];
+            uint64_t second_mask =
+                    (OppositeDiagonal1(player_).to_ullong() & val) >> offsets_col_diag1[col];
             auto res = precalced_check_line[(first_mask << 8) + second_mask];
             for (int32_t i = 0; i < 8 - col; ++i) {
                 if (res[i]) {
@@ -448,9 +307,11 @@ namespace ReversiEngine {
             }
         }
         for (int32_t row = 1; row < 6; ++row) {
-            int diag1 = CONV_POSITION_DIAG1_NUM[row << 3];
-            uint64_t first_mask = SameDiagonal1(player_)[diag1].to_ullong();
-            uint64_t second_mask = OppositeDiagonal1(player_)[diag1].to_ullong();
+            uint64_t val = row_diag1[row];
+            uint64_t first_mask =
+                    (SameDiagonal1(player_).to_ullong() & val) >> offsets_row_diag1[row];
+            uint64_t second_mask =
+                    (OppositeDiagonal1(player_).to_ullong() & val) >> offsets_row_diag1[row];
             auto res = precalced_check_line[(first_mask << 8) + second_mask];
             for (int32_t i = 0; i < 8 - row; ++i) {
                 if (res[i]) {
@@ -459,9 +320,11 @@ namespace ReversiEngine {
             }
         }
         for (int32_t col = 2; col < 8; ++col) {
-            int diag2 = CONV_POSITION_DIAG2_NUM[col];
-            uint64_t first_mask = SameDiagonal2(player_)[diag2].to_ullong();
-            uint64_t second_mask = OppositeDiagonal2(player_)[diag2].to_ullong();
+            uint64_t val = col_diag2[col];
+            uint64_t first_mask =
+                    (SameDiagonal2(player_).to_ullong() & val) >> offsets_col_diag2[col];
+            uint64_t second_mask =
+                    (OppositeDiagonal2(player_).to_ullong() & val) >> offsets_col_diag2[col];
             auto res = precalced_check_line[(first_mask << 8) + second_mask];
             for (int32_t i = 0; i < col + 1; ++i) {
                 if (res[i]) {
@@ -470,9 +333,11 @@ namespace ReversiEngine {
             }
         }
         for (int32_t row = 1; row < 6; ++row) {
-            int diag2 = CONV_POSITION_DIAG2_NUM[(row << 3) + 7];
-            uint64_t first_mask = SameDiagonal2(player_)[diag2].to_ullong();
-            uint64_t second_mask = OppositeDiagonal2(player_)[diag2].to_ullong();
+            uint64_t val = row_diag2[row];
+            uint64_t first_mask =
+                    (SameDiagonal2(player_).to_ullong() & val) >> offsets_row_diag2[row];
+            uint64_t second_mask =
+                    (OppositeDiagonal2(player_).to_ullong() & val) >> offsets_row_diag2[row];
             auto res = precalced_check_line[(first_mask << 8) + second_mask];
             for (int32_t i = 0; i < 8 - row; ++i) {
                 if (res[i]) {
@@ -482,47 +347,6 @@ namespace ReversiEngine {
         }
 
         BitsetToVector(is_possible, result);
-    }
-
-    std::vector<Cell> Board::OldPossibleMoves() const {
-        std::vector<Cell> res;
-        for (int32_t row = 0; row < 8; ++row) {
-            for (int32_t col = 0; col < 8; ++col) {
-                int32_t position = Cell{row, col}.ToInt();
-                if (is_first_[position] || is_second_[position]) {
-                    continue;
-                }
-                bool possible = false;
-                for (int32_t drow = -1; drow <= 1 && !possible; ++drow) {
-                    for (int32_t dcol = -1; dcol <= 1 && !possible; ++dcol) {
-                        if (dcol != 0 || drow != 0) {
-                            possible = IsThereCaptures(row, col, drow, dcol);
-                        }
-                    }
-                }
-                if (possible) {
-                    res.push_back({row, col});
-                }
-            }
-        }
-        return res;
-    }
-
-    bool Board::IsThereCaptures(int32_t row, int32_t col, int32_t drow, int32_t dcol) const {
-        for (int32_t k = 1; IsInBoundingBox(Cell{row + k * drow, col + k * dcol}); ++k) {
-            int32_t position = Cell{row + k * drow, col + k * dcol}.ToInt();
-            if (!is_first_[position] && !is_second_[position]) {
-                return false;
-            }
-            if (Same(player_)[position]) {
-                if (k != 1) {
-                    return true;
-                } else {
-                    return false;
-                }
-            }
-        }
-        return false;
     }
 
     Bitset64 Board::GetCaptures(int32_t row, int32_t col, int32_t drow, int32_t dcol) const {
@@ -542,22 +366,6 @@ namespace ReversiEngine {
 
     bool Board::GameEnded() const {
         return (PossibleMoves().empty() && (MakeMove(Cell{-1, -1})).PossibleMoves().empty());
-    }
-
-    Bitset64& Board::Same(Player player) {
-        if (player == First) {
-            return is_first_;
-        } else {
-            return is_second_;
-        }
-    }
-
-    Bitset64& Board::Opposite(Player player) {
-        if (player == First) {
-            return is_second_;
-        } else {
-            return is_first_;
-        }
     }
 
     const Bitset64& Board::Same(Player player) const {
@@ -619,22 +427,6 @@ namespace ReversiEngine {
         return (player_ == First ? res : -res);
     }
 
-    Bitset64& Board::SameVertical(Player player) {
-        if (player == First) {
-            return is_first_vertical;
-        } else {
-            return is_second_vertical;
-        }
-    }
-
-    Bitset64& Board::OppositeVertical(Player player) {
-        if (player == First) {
-            return is_second_vertical;
-        } else {
-            return is_first_vertical;
-        }
-    }
-
     const Bitset64& Board::SameVertical(Player player) const {
         if (player == First) {
             return is_first_vertical;
@@ -651,7 +443,7 @@ namespace ReversiEngine {
         }
     }
 
-    std::array<Bitset8, 15>& Board::SameDiagonal1(Player player) {
+    const Bitset64& Board::SameDiagonal1(Player player) const {
         if (player == First) {
             return is_first_diagonal1;
         } else {
@@ -659,7 +451,7 @@ namespace ReversiEngine {
         }
     }
 
-    std::array<Bitset8, 15>& Board::OppositeDiagonal1(Player player) {
+    const Bitset64& Board::OppositeDiagonal1(Player player) const {
         if (player == First) {
             return is_second_diagonal1;
         } else {
@@ -667,23 +459,7 @@ namespace ReversiEngine {
         }
     }
 
-    const std::array<Bitset8, 15>& Board::SameDiagonal1(Player player) const {
-        if (player == First) {
-            return is_first_diagonal1;
-        } else {
-            return is_second_diagonal1;
-        }
-    }
-
-    const std::array<Bitset8, 15>& Board::OppositeDiagonal1(Player player) const {
-        if (player == First) {
-            return is_second_diagonal1;
-        } else {
-            return is_first_diagonal1;
-        }
-    }
-
-    std::array<Bitset8, 15>& Board::SameDiagonal2(Player player) {
+    const Bitset64& Board::SameDiagonal2(Player player) const {
         if (player == First) {
             return is_first_diagonal2;
         } else {
@@ -691,23 +467,7 @@ namespace ReversiEngine {
         }
     }
 
-    std::array<Bitset8, 15>& Board::OppositeDiagonal2(Player player) {
-        if (player == First) {
-            return is_second_diagonal2;
-        } else {
-            return is_first_diagonal2;
-        }
-    }
-
-    const std::array<Bitset8, 15>& Board::SameDiagonal2(Player player) const {
-        if (player == First) {
-            return is_first_diagonal2;
-        } else {
-            return is_second_diagonal2;
-        }
-    }
-
-    const std::array<Bitset8, 15>& Board::OppositeDiagonal2(Player player) const {
+    const Bitset64& Board::OppositeDiagonal2(Player player) const {
         if (player == First) {
             return is_second_diagonal2;
         } else {
