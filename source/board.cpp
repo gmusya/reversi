@@ -10,7 +10,7 @@ namespace ReversiEngine {
 
     namespace {
         // clang-format off
-        const std::array<int, 64> CELL_COST = {
+        const std::array<int, 64> CONV_POSITION_ROW = {
             100,  30,  30,  30,  30,  30,  30, 100,
              30,   1,   1,   1,   1,   1,   1,  30,
              30,   1,   1,   1,   1,   1,   1,  30,
@@ -21,15 +21,60 @@ namespace ReversiEngine {
             100,  30,  30,  30,  30,  30,  30, 100
         };
 
-        const std::array<int, 64> CONV_ROW_TABLE = {
-                0,  8,  16, 24, 32, 40, 48, 56,
-                1,  9,  17, 25, 33, 41, 49, 57,
-                2,  10, 18, 26, 34, 42, 50, 58,
-                3,  11, 19, 27, 35, 43, 51, 59,
-                4,  12, 20, 28, 36, 44, 52, 60,
-                5,  13, 21, 29, 37, 45, 53, 61,
-                6,  14, 22, 30, 38, 46, 54, 62,
-                7,  15, 23, 31, 39, 47, 55, 63};
+        const std::array<int, 64> CONV_POSITION_COL = {
+                0,  8, 16, 24, 32, 40, 48, 56,
+                1,  9, 17, 25, 33, 41, 49, 57,
+                2, 10, 18, 26, 34, 42, 50, 58,
+                3, 11, 19, 27, 35, 43, 51, 59,
+                4, 12, 20, 28, 36, 44, 52, 60,
+                5, 13, 21, 29, 37, 45, 53, 61,
+                6, 14, 22, 30, 38, 46, 54, 62,
+                7, 15, 23, 31, 39, 47, 55, 63
+        };
+
+        const std::array<int, 64> CONV_POSITION_DIAG1_NUM = {
+                 7,  6,  5,  4,  3,  2,  1,  0,
+                 8,  7,  6,  5,  4,  3,  2,  1,
+                 9,  8,  7,  6,  5,  4,  3,  2,
+                10,  9,  8,  7,  6,  5,  4,  3,
+                11, 10,  9,  8,  7,  6,  5,  4,
+                12, 11, 10,  9,  8,  7,  6,  5,
+                13, 12, 11, 10,  9,  8,  7,  6,
+                14, 13, 12, 11, 10,  9,  8,  7
+        };
+
+        const std::array<int, 64> CONV_POSITION_DIAG1_POS = {
+                0, 0, 0, 0, 0, 0, 0, 0,
+                0, 1, 1, 1, 1, 1, 1, 1,
+                0, 1, 2, 2, 2, 2, 2, 2,
+                0, 1, 2, 3, 3, 3, 3, 3,
+                0, 1, 2, 3, 4, 4, 4, 4,
+                0, 1, 2, 3, 4, 5, 5, 5,
+                0, 1, 2, 3, 4, 5, 6, 6,
+                0, 1, 2, 3, 4, 5, 6, 7
+        };
+
+        const std::array<int, 64> CONV_POSITION_DIAG2_NUM = {
+                0,  1,  2,  3,  4,  5,  6,  7,
+                1,  2,  3,  4,  5,  6,  7,  8,
+                2,  3,  4,  5,  6,  7,  8,  9,
+                3,  4,  5,  6,  7,  8,  9, 10,
+                4,  5,  6,  7,  8,  9, 10, 11,
+                5,  6,  7,  8,  9, 10, 11, 12,
+                6,  7,  8,  9, 10, 11, 12, 13,
+                7,  8,  9, 10, 11, 12, 13, 14
+        };
+
+        const std::array<int, 64> CONV_POSITION_DIAG2_POS = {
+                0, 0, 0, 0, 0, 0, 0, 0,
+                1, 1, 1, 1, 1, 1, 1, 0,
+                2, 2, 2, 2, 2, 2, 1, 0,
+                3, 3, 3, 3, 3, 2, 1, 0,
+                4, 4, 4, 4, 3, 2, 1, 0,
+                5, 5, 5, 4, 3, 2, 1, 0,
+                6, 6, 5, 4, 3, 2, 1, 0,
+                7, 6, 5, 4, 3, 2, 1, 0
+        };
         // clang-format on
     }// namespace
 
@@ -111,9 +156,9 @@ namespace ReversiEngine {
                     int32_t cost = 0;
                     for (int32_t col = 0; col < 8; ++col) {
                         if (is_first[col]) {
-                            cost += CELL_COST[(row << 3) + col];
+                            cost += CONV_POSITION_ROW[(row << 3) + col];
                         } else if (is_second[col]) {
-                            cost -= CELL_COST[(row << 3) + col];
+                            cost -= CONV_POSITION_ROW[(row << 3) + col];
                         }
                     }
                     precalced_row_costs[row][(mask_first << 8) + mask_second] = cost;
@@ -133,10 +178,19 @@ namespace ReversiEngine {
 
 
     void Board::PlacePiece(size_t position, Player player) {
-        Same(player)[position] = true;
-        Opposite(player)[position] = false;
-        SameVertical(player)[CONV_ROW_TABLE[position]] = true;
-        OppositeVertical(player)[CONV_ROW_TABLE[position]] = false;
+        bool player_is_first = (player == First);
+        is_first_[position] = player_is_first;
+        is_second_[position] = !player_is_first;
+        is_first_vertical[CONV_POSITION_COL[position]] = player_is_first;
+        is_second_vertical[CONV_POSITION_COL[position]] = !player_is_first;
+        is_first_diagonal1[CONV_POSITION_DIAG1_NUM[position]][CONV_POSITION_DIAG1_POS[position]] =
+                player_is_first;
+        is_second_diagonal1[CONV_POSITION_DIAG1_NUM[position]][CONV_POSITION_DIAG1_POS[position]] =
+                !player_is_first;
+        is_first_diagonal2[CONV_POSITION_DIAG2_NUM[position]][CONV_POSITION_DIAG2_POS[position]] =
+                player_is_first;
+        is_second_diagonal2[CONV_POSITION_DIAG2_NUM[position]][CONV_POSITION_DIAG2_POS[position]] =
+                !player_is_first;
     }
 
     void Board::PlacePiece(const Cell& cell, Player player) {
@@ -154,9 +208,9 @@ namespace ReversiEngine {
             for (int32_t col = 0; col < 8; ++col) {
                 Cell cell{row, col};
                 if (is_first_[cell.ToInt()]) {
-                    result += CELL_COST[(row << 3) + col];
+                    result += CONV_POSITION_ROW[(row << 3) + col];
                 } else if (is_second_[cell.ToInt()]) {
-                    result -= CELL_COST[(row << 3) + col];
+                    result -= CONV_POSITION_ROW[(row << 3) + col];
                 }
             }
         }
@@ -383,17 +437,9 @@ namespace ReversiEngine {
             }
         }
         for (int32_t col = 0; col < 6; ++col) {
-
-            auto x = (value_first >> col);
-            uint64_t first_mask = 0;
-            for (int32_t i = 0; i < 8 - col; ++i) {
-                first_mask |= ((x >> (i * 9)) & 1) << i;
-            }
-            x = (value_second >> col);
-            uint64_t second_mask = 0;
-            for (int32_t i = 0; i < 8 - col; ++i) {
-                second_mask |= ((x >> (i * 9)) & 1) << i;
-            }
+            int diag1 = CONV_POSITION_DIAG1_NUM[col];
+            uint64_t first_mask = SameDiagonal1(player_)[diag1].to_ullong();
+            uint64_t second_mask = OppositeDiagonal1(player_)[diag1].to_ullong();
             auto res = precalced_check_line[(first_mask << 8) + second_mask];
             for (int32_t i = 0; i < 8 - col; ++i) {
                 if (res[i]) {
@@ -402,16 +448,9 @@ namespace ReversiEngine {
             }
         }
         for (int32_t row = 1; row < 6; ++row) {
-            auto x = (value_first >> (row << 3));
-            uint64_t first_mask = 0;
-            for (int32_t i = 0; i < 8 - row; ++i) {
-                first_mask |= ((x >> (i * 9)) & 1) << i;
-            }
-            x = (value_second >> (row << 3));
-            uint64_t second_mask = 0;
-            for (int32_t i = 0; i < 8 - row; ++i) {
-                second_mask |= ((x >> (i * 9)) & 1) << i;
-            }
+            int diag1 = CONV_POSITION_DIAG1_NUM[row << 3];
+            uint64_t first_mask = SameDiagonal1(player_)[diag1].to_ullong();
+            uint64_t second_mask = OppositeDiagonal1(player_)[diag1].to_ullong();
             auto res = precalced_check_line[(first_mask << 8) + second_mask];
             for (int32_t i = 0; i < 8 - row; ++i) {
                 if (res[i]) {
@@ -420,16 +459,9 @@ namespace ReversiEngine {
             }
         }
         for (int32_t col = 2; col < 8; ++col) {
-            auto x = (value_first >> col);
-            uint64_t first_mask = 0;
-            for (int32_t i = 0; i < col + 1; ++i) {
-                first_mask |= ((x >> (i * 7)) & 1) << i;
-            }
-            x = (value_second >> col);
-            uint64_t second_mask = 0;
-            for (int32_t i = 0; i < col + 1; ++i) {
-                second_mask |= ((x >> (i * 7)) & 1) << i;
-            }
+            int diag2 = CONV_POSITION_DIAG2_NUM[col];
+            uint64_t first_mask = SameDiagonal2(player_)[diag2].to_ullong();
+            uint64_t second_mask = OppositeDiagonal2(player_)[diag2].to_ullong();
             auto res = precalced_check_line[(first_mask << 8) + second_mask];
             for (int32_t i = 0; i < col + 1; ++i) {
                 if (res[i]) {
@@ -438,16 +470,9 @@ namespace ReversiEngine {
             }
         }
         for (int32_t row = 1; row < 6; ++row) {
-            auto x = (value_first >> ((row << 3) + 7));
-            uint64_t first_mask = 0;
-            for (int32_t i = 0; i < 8 - row; ++i) {
-                first_mask |= ((x >> (i * 7)) & 1) << i;
-            }
-            x = (value_second >> ((row << 3) + 7));
-            uint64_t second_mask = 0;
-            for (int32_t i = 0; i < 8 - row; ++i) {
-                second_mask |= ((x >> (i * 7)) & 1) << i;
-            }
+            int diag2 = CONV_POSITION_DIAG2_NUM[(row << 3) + 7];
+            uint64_t first_mask = SameDiagonal2(player_)[diag2].to_ullong();
+            uint64_t second_mask = OppositeDiagonal2(player_)[diag2].to_ullong();
             auto res = precalced_check_line[(first_mask << 8) + second_mask];
             for (int32_t i = 0; i < 8 - row; ++i) {
                 if (res[i]) {
@@ -588,7 +613,8 @@ namespace ReversiEngine {
             int shift = 8 * row;
             auto first_mask = (first >> shift) & ((1 << 8) - 1);
             auto second_mask = (second >> shift) & ((1 << 8) - 1);
-            res += precalced_row_costs[(row == 0 || row == 7) ? 0 : 1][(first_mask << 8) + second_mask];
+            res += precalced_row_costs[(row == 0 || row == 7) ? 0 : 1]
+                                      [(first_mask << 8) + second_mask];
         }
         return (player_ == First ? res : -res);
     }
@@ -622,6 +648,70 @@ namespace ReversiEngine {
             return is_second_vertical;
         } else {
             return is_first_vertical;
+        }
+    }
+
+    std::array<Bitset8, 15>& Board::SameDiagonal1(Player player) {
+        if (player == First) {
+            return is_first_diagonal1;
+        } else {
+            return is_second_diagonal1;
+        }
+    }
+
+    std::array<Bitset8, 15>& Board::OppositeDiagonal1(Player player) {
+        if (player == First) {
+            return is_second_diagonal1;
+        } else {
+            return is_first_diagonal1;
+        }
+    }
+
+    const std::array<Bitset8, 15>& Board::SameDiagonal1(Player player) const {
+        if (player == First) {
+            return is_first_diagonal1;
+        } else {
+            return is_second_diagonal1;
+        }
+    }
+
+    const std::array<Bitset8, 15>& Board::OppositeDiagonal1(Player player) const {
+        if (player == First) {
+            return is_second_diagonal1;
+        } else {
+            return is_first_diagonal1;
+        }
+    }
+
+    std::array<Bitset8, 15>& Board::SameDiagonal2(Player player) {
+        if (player == First) {
+            return is_first_diagonal2;
+        } else {
+            return is_second_diagonal2;
+        }
+    }
+
+    std::array<Bitset8, 15>& Board::OppositeDiagonal2(Player player) {
+        if (player == First) {
+            return is_second_diagonal2;
+        } else {
+            return is_first_diagonal2;
+        }
+    }
+
+    const std::array<Bitset8, 15>& Board::SameDiagonal2(Player player) const {
+        if (player == First) {
+            return is_first_diagonal2;
+        } else {
+            return is_second_diagonal2;
+        }
+    }
+
+    const std::array<Bitset8, 15>& Board::OppositeDiagonal2(Player player) const {
+        if (player == First) {
+            return is_second_diagonal2;
+        } else {
+            return is_first_diagonal2;
         }
     }
 
