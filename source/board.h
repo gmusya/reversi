@@ -30,6 +30,8 @@ namespace ReversiEngine {
 
         std::vector<Cell> OldPossibleMoves() const;
 
+        void InitPrecalc() const;
+
     private:
         void PlacePiece(size_t position, Player player);
 
