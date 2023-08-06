@@ -44,6 +44,9 @@ struct Bitset64 {
     }
 
     [[nodiscard]] inline uint64_t _Find_first() const {
+        if (!value) {
+            return 64;
+        }
         return __builtin_ctzll(value);
     }
 
