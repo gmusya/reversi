@@ -2,7 +2,7 @@
 
 #include <array>
 
-std::array<Bitset64, 1 << 16> precalced_check_line;
+std::array<Bitset8, 1 << 16> precalced_check_line;
 std::array<std::array<int32_t, 1 << 16>, 8> precalced_row_costs;
 
 namespace ReversiEngine {
@@ -63,7 +63,7 @@ namespace ReversiEngine {
                 }
                 Bitset64 is_first(mask_first);
                 Bitset64 is_second(mask_second);
-                Bitset64 is_possible;
+                Bitset8 is_possible;
                 int32_t start_pos = 0;
                 int32_t to_add = 1;
                 int32_t current_position = 0;
@@ -96,7 +96,7 @@ namespace ReversiEngine {
                 }
                 Bitset64 is_first(mask_first);
                 Bitset64 is_second(mask_second);
-                Bitset64 is_possible;
+                Bitset8 is_possible;
                 int32_t start_pos = 7;
                 int32_t to_add = -1;
                 int32_t current_position = 0;
