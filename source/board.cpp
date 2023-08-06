@@ -3,7 +3,8 @@
 #include <array>
 #include <cassert>
 
-std::vector<Bitset64> precalced_check_line(1 << 16);
+std::array<Bitset64, 1 << 16> precalced_check_line;
+std::array<std::array<int32_t, 1 << 16>, 8> precalced_row_costs;
 
 namespace ReversiEngine {
 
@@ -99,6 +100,26 @@ namespace ReversiEngine {
                 precalced_check_line[(mask_first << 8) + mask_second] |= is_possible;
             }
         }
+        for (int32_t row = 0; row < 8; ++row) {
+            for (int32_t mask_first = 0; mask_first < (1 << 8); ++mask_first) {
+                for (int32_t mask_second = 0; mask_second < (1 << 8); ++mask_second) {
+                    if (mask_first & mask_second) {
+                        continue;
+                    }
+                    Bitset64 is_first(mask_first);
+                    Bitset64 is_second(mask_second);
+                    int32_t cost = 0;
+                    for (int32_t col = 0; col < 8; ++col) {
+                        if (is_first[col]) {
+                            cost += CELL_COST[(row << 3) + col];
+                        } else if (is_second[col]) {
+                            cost -= CELL_COST[(row << 3) + col];
+                        }
+                    }
+                    precalced_row_costs[row][(mask_first << 8) + mask_second] = cost;
+                }
+            }
+        }
     }
 
     Board::Board() {
@@ -112,20 +133,10 @@ namespace ReversiEngine {
 
 
     void Board::PlacePiece(size_t position, Player player) {
-        if (is_first_[position]) {
-            eval -= CELL_COST[position];
-        } else if (is_second_[position]) {
-            eval += CELL_COST[position];
-        }
         Same(player)[position] = true;
         Opposite(player)[position] = false;
         SameVertical(player)[CONV_ROW_TABLE[position]] = true;
         OppositeVertical(player)[CONV_ROW_TABLE[position]] = false;
-        if (is_first_[position]) {
-            eval += CELL_COST[position];
-        } else if (is_second_[position]) {
-            eval -= CELL_COST[position];
-        }
     }
 
     void Board::PlacePiece(const Cell& cell, Player player) {
@@ -570,7 +581,16 @@ namespace ReversiEngine {
     }
 
     int32_t Board::FinalEvaluation() const {
-        return (player_ == First ? eval : -eval);
+        auto first = is_first_.to_ullong();
+        auto second = is_second_.to_ullong();
+        int32_t res = 0;
+        for (int32_t row = 0; row < 8; ++row) {
+            int shift = 8 * row;
+            auto first_mask = (first >> shift) & ((1 << 8) - 1);
+            auto second_mask = (second >> shift) & ((1 << 8) - 1);
+            res += precalced_row_costs[(row == 0 || row == 7) ? 0 : 1][(first_mask << 8) + second_mask];
+        }
+        return (player_ == First ? res : -res);
     }
 
     Bitset64& Board::SameVertical(Player player) {
