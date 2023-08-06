@@ -59,6 +59,9 @@ namespace ReversiEngine {
         std::bitset<64> is_second_;
         Player player_;
         int32_t eval;
+        void PossibleMovesDiagonal(std::bitset<64>& is_possible) const;
+        void PossibleMovesVertical(std::bitset<64>& is_possible) const;
+        void PossibleMovesHorizontal(std::bitset<64>& is_possible) const;
     };
 
 }// namespace ReversiEngine
