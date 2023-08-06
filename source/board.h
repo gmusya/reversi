@@ -4,6 +4,7 @@
 
 #include "bitset64.h"
 #include "cell.h"
+#include <array>
 
 namespace ReversiEngine {
     enum Player { First, Second };
@@ -55,6 +56,22 @@ namespace ReversiEngine {
 
         [[nodiscard]] const Bitset64& OppositeVertical(Player player) const;
 
+        std::array<Bitset8, 15>& SameDiagonal1(Player player);
+
+        std::array<Bitset8, 15>& OppositeDiagonal1(Player player);
+
+        [[nodiscard]] const std::array<Bitset8, 15>& SameDiagonal1(Player player) const;
+
+        [[nodiscard]] const std::array<Bitset8, 15>& OppositeDiagonal1(Player player) const;
+
+        std::array<Bitset8, 15>& SameDiagonal2(Player player);
+
+        std::array<Bitset8, 15>& OppositeDiagonal2(Player player);
+
+        [[nodiscard]] const std::array<Bitset8, 15>& SameDiagonal2(Player player) const;
+
+        [[nodiscard]] const std::array<Bitset8, 15>& OppositeDiagonal2(Player player) const;
+
         [[nodiscard]] Bitset64 GetCaptures(int32_t row, int32_t col, int32_t drow,
                                            int32_t dcol) const;
 
@@ -67,6 +84,10 @@ namespace ReversiEngine {
         Bitset64 is_second_;
         Bitset64 is_first_vertical;
         Bitset64 is_second_vertical;
+        std::array<Bitset8, 15> is_first_diagonal1;
+        std::array<Bitset8, 15> is_second_diagonal1;
+        std::array<Bitset8, 15> is_first_diagonal2;
+        std::array<Bitset8, 15> is_second_diagonal2;
         Player player_;
         int32_t eval;
         void PossibleMovesDiagonal(Bitset64& is_possible) const;
