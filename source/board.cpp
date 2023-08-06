@@ -9,16 +9,16 @@ namespace ReversiEngine {
 
     namespace {
         // clang-format off
-        const std::array<std::array<int, 8>, 8> CELL_COST = {{
-            {100,  30,  30,  30,  30,  30,  30, 100},
-            { 30,   1,   1,   1,   1,   1,   1,  30},
-            { 30,   1,   1,   1,   1,   1,   1,  30},
-            { 30,   1,   1,   1,   1,   1,   1,  30},
-            { 30,   1,   1,   1,   1,   1,   1,  30},
-            { 30,   1,   1,   1,   1,   1,   1,  30},
-            { 30,   1,   1,   1,   1,   1,   1,  30},
-            {100,  30,  30,  30,  30,  30,  30, 100}
-        }};
+        const std::array<int, 64> CELL_COST = {
+            100,  30,  30,  30,  30,  30,  30, 100,
+             30,   1,   1,   1,   1,   1,   1,  30,
+             30,   1,   1,   1,   1,   1,   1,  30,
+             30,   1,   1,   1,   1,   1,   1,  30,
+             30,   1,   1,   1,   1,   1,   1,  30,
+             30,   1,   1,   1,   1,   1,   1,  30,
+             30,   1,   1,   1,   1,   1,   1,  30,
+            100,  30,  30,  30,  30,  30,  30, 100
+        };
 
         const std::array<int, 64> CONV_ROW_TABLE = {
                 0,  8,  16, 24, 32, 40, 48, 56,
@@ -113,20 +113,18 @@ namespace ReversiEngine {
 
     void Board::PlacePiece(size_t position, Player player) {
         if (is_first_[position]) {
-            eval -= CELL_COST[position >> 3][position & 7];
-        }
-        if (is_second_[position]) {
-            eval += CELL_COST[position >> 3][position & 7];
+            eval -= CELL_COST[position];
+        } else if (is_second_[position]) {
+            eval += CELL_COST[position];
         }
         Same(player)[position] = true;
         Opposite(player)[position] = false;
         SameVertical(player)[CONV_ROW_TABLE[position]] = true;
         OppositeVertical(player)[CONV_ROW_TABLE[position]] = false;
         if (is_first_[position]) {
-            eval += CELL_COST[position >> 3][position & 7];
-        }
-        if (is_second_[position]) {
-            eval -= CELL_COST[position >> 3][position & 7];
+            eval += CELL_COST[position];
+        } else if (is_second_[position]) {
+            eval -= CELL_COST[position];
         }
     }
 
@@ -145,9 +143,9 @@ namespace ReversiEngine {
             for (int32_t col = 0; col < 8; ++col) {
                 Cell cell{row, col};
                 if (is_first_[cell.ToInt()]) {
-                    result += CELL_COST[row][col];
+                    result += CELL_COST[(row << 3) + col];
                 } else if (is_second_[cell.ToInt()]) {
-                    result -= CELL_COST[row][col];
+                    result -= CELL_COST[(row << 3) + col];
                 }
             }
         }
