@@ -3,7 +3,7 @@
 #include <array>
 #include <cassert>
 
-std::vector<std::bitset<8>> precalced_check_line(1 << 16);
+std::vector<Bitset64> precalced_check_line(1 << 16);
 
 namespace ReversiEngine {
 
@@ -28,9 +28,9 @@ namespace ReversiEngine {
                 if (mask_first & mask_second) {
                     continue;
                 }
-                std::bitset<8> is_first(mask_first);
-                std::bitset<8> is_second(mask_second);
-                std::bitset<8> is_possible;
+                Bitset64 is_first(mask_first);
+                Bitset64 is_second(mask_second);
+                Bitset64 is_possible;
                 int32_t start_pos = 0;
                 int32_t to_add = 1;
                 int32_t current_position = 0;
@@ -61,9 +61,9 @@ namespace ReversiEngine {
                 if (mask_first & mask_second) {
                     continue;
                 }
-                std::bitset<8> is_first(mask_first);
-                std::bitset<8> is_second(mask_second);
-                std::bitset<8> is_possible;
+                Bitset64 is_first(mask_first);
+                Bitset64 is_second(mask_second);
+                Bitset64 is_possible;
                 int32_t start_pos = 7;
                 int32_t to_add = -1;
                 int32_t current_position = 0;
@@ -153,7 +153,7 @@ namespace ReversiEngine {
             board.player_ = (player_ == Player::First ? Player::Second : Player::First);
             return board;
         }
-        std::bitset<64> captured;
+        Bitset64 captured;
         for (int32_t dcol = -1; dcol <= 1; ++dcol) {
             for (int32_t drow = -1; drow <= 1; ++drow) {
                 if (dcol == 0 && drow == 0) {
@@ -175,7 +175,7 @@ namespace ReversiEngine {
         return (player_ == Player::First ? 'x' : 'o');
     }
 
-    inline void Board::CheckLine(Cell first, int drow, int dcol, std::bitset<64>& is_possible,
+    inline void Board::CheckLine(Cell first, int drow, int dcol, Bitset64& is_possible,
                                  int32_t line_length) const {
         int32_t start_pos = first.ToInt();
         int32_t to_add = Cell{drow, dcol}.ToInt();
@@ -201,7 +201,7 @@ namespace ReversiEngine {
     }
 
     namespace {
-        void BitsetToVector(const std::bitset<64>& is_possible, std::vector<Cell>& result) {
+        void BitsetToVector(const Bitset64& is_possible, std::vector<Cell>& result) {
             result.clear();
             for (size_t position = is_possible._Find_first(); position < 64;
                  position = is_possible._Find_next(position)) {
@@ -213,7 +213,7 @@ namespace ReversiEngine {
         }
     }// namespace
 
-    inline void Board::PossibleMovesHorizontal(std::bitset<64>& is_possible) const {
+    inline void Board::PossibleMovesHorizontal(Bitset64& is_possible) const {
         auto first_set = Same(player_);
         auto second_set = Opposite(player_);
         auto first = first_set.to_ullong();
@@ -223,11 +223,11 @@ namespace ReversiEngine {
             auto first_mask = (first >> shift) & ((1 << 8) - 1);
             auto second_mask = (second >> shift) & ((1 << 8) - 1);
             auto x = precalced_check_line[(first_mask << 8) + second_mask];
-            is_possible |= std::bitset<64>(x.to_ullong() << shift);
+            is_possible |= Bitset64(x.to_ullong() << shift);
         }
     }
 
-    inline void Board::PossibleMovesVertical(std::bitset<64>& is_possible) const {
+    inline void Board::PossibleMovesVertical(Bitset64& is_possible) const {
         auto first_set = Same(player_);
         auto second_set = Opposite(player_);
         auto value_first = first_set.to_ullong();
@@ -252,7 +252,7 @@ namespace ReversiEngine {
         }
     }
 
-    inline void Board::PossibleMovesDiagonal(std::bitset<64>& is_possible) const {
+    inline void Board::PossibleMovesDiagonal(Bitset64& is_possible) const {
         auto first_set = Same(player_);
         auto second_set = Opposite(player_);
         auto value_first = first_set.to_ullong();
@@ -333,7 +333,7 @@ namespace ReversiEngine {
     }
 
     void Board::PossibleMoves(std::vector<Cell>& result) const {
-        std::bitset<64> is_possible;
+        Bitset64 is_possible;
         auto first_set = Same(player_);
         auto second_set = Opposite(player_);
         auto value_first = first_set.to_ullong();
@@ -343,7 +343,7 @@ namespace ReversiEngine {
             auto first_mask = (value_first >> shift) & ((1 << 8) - 1);
             auto second_mask = (value_second >> shift) & ((1 << 8) - 1);
             auto x = precalced_check_line[(first_mask << 8) + second_mask];
-            is_possible |= std::bitset<64>(x.to_ullong() << shift);
+            is_possible |= Bitset64(x.to_ullong() << shift);
         }
         for (int32_t col = 0; col < 8; ++col) {
             auto x = (value_first >> col);
@@ -481,8 +481,8 @@ namespace ReversiEngine {
         return false;
     }
 
-    std::bitset<64> Board::GetCaptures(int32_t row, int32_t col, int32_t drow, int32_t dcol) const {
-        std::bitset<64> res;
+    Bitset64 Board::GetCaptures(int32_t row, int32_t col, int32_t drow, int32_t dcol) const {
+        Bitset64 res;
         for (int32_t k = 1; IsInBoundingBox(Cell{row + k * drow, col + k * dcol}); ++k) {
             int32_t position = Cell{row + k * drow, col + k * dcol}.ToInt();
             if (!is_first_[position] && !is_second_[position]) {
@@ -500,7 +500,7 @@ namespace ReversiEngine {
         return (PossibleMoves().empty() && (MakeMove(Cell{-1, -1})).PossibleMoves().empty());
     }
 
-    std::bitset<64>& Board::Same(Player player) {
+    Bitset64& Board::Same(Player player) {
         if (player == First) {
             return is_first_;
         } else {
@@ -508,7 +508,7 @@ namespace ReversiEngine {
         }
     }
 
-    std::bitset<64>& Board::Opposite(Player player) {
+    Bitset64& Board::Opposite(Player player) {
         if (player == First) {
             return is_second_;
         } else {
@@ -516,7 +516,7 @@ namespace ReversiEngine {
         }
     }
 
-    const std::bitset<64>& Board::Same(Player player) const {
+    const Bitset64& Board::Same(Player player) const {
         if (player == First) {
             return is_first_;
         } else {
@@ -524,7 +524,7 @@ namespace ReversiEngine {
         }
     }
 
-    const std::bitset<64>& Board::Opposite(Player player) const {
+    const Bitset64& Board::Opposite(Player player) const {
         if (player == First) {
             return is_second_;
         } else {

@@ -2,8 +2,8 @@
 
 #include <vector>
 
+#include "bitset64.h"
 #include "cell.h"
-#include <bitset>
 
 namespace ReversiEngine {
     enum Player { First, Second };
@@ -39,29 +39,29 @@ namespace ReversiEngine {
 
         static bool IsInBoundingBox(const Cell& cell);
 
-        std::bitset<64>& Same(Player player);
+        Bitset64& Same(Player player);
 
-        std::bitset<64>& Opposite(Player player);
+        Bitset64& Opposite(Player player);
 
-        [[nodiscard]] const std::bitset<64>& Same(Player player) const;
+        [[nodiscard]] const Bitset64& Same(Player player) const;
 
-        [[nodiscard]] const std::bitset<64>& Opposite(Player player) const;
+        [[nodiscard]] const Bitset64& Opposite(Player player) const;
 
-        [[nodiscard]] std::bitset<64> GetCaptures(int32_t row, int32_t col, int32_t drow,
-                                                    int32_t dcol) const;
+        [[nodiscard]] Bitset64 GetCaptures(int32_t row, int32_t col, int32_t drow,
+                                           int32_t dcol) const;
 
-        void CheckLine(Cell first, int dcol, int drow, std::bitset<64>& is_possible,
+        void CheckLine(Cell first, int dcol, int drow, Bitset64& is_possible,
                        int32_t line_length) const;
 
         bool IsThereCaptures(int32_t row, int32_t col, int32_t drow, int32_t dcol) const;
 
-        std::bitset<64> is_first_;
-        std::bitset<64> is_second_;
+        Bitset64 is_first_;
+        Bitset64 is_second_;
         Player player_;
         int32_t eval;
-        void PossibleMovesDiagonal(std::bitset<64>& is_possible) const;
-        void PossibleMovesVertical(std::bitset<64>& is_possible) const;
-        void PossibleMovesHorizontal(std::bitset<64>& is_possible) const;
+        void PossibleMovesDiagonal(Bitset64& is_possible) const;
+        void PossibleMovesVertical(Bitset64& is_possible) const;
+        void PossibleMovesHorizontal(Bitset64& is_possible) const;
     };
 
 }// namespace ReversiEngine
