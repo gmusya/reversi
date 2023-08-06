@@ -34,8 +34,17 @@ struct Bitset64 {
         return BitsetReference{*this, index};
     }
 
+    inline Bitset64 operator~() const {
+        return Bitset64(~value);
+    }
+
     inline Bitset64& operator|=(const Bitset64& other) {
         value |= other.value;
+        return *this;
+    }
+
+    inline Bitset64& operator&=(const Bitset64& other) {
+        value &= other.value;
         return *this;
     }
 

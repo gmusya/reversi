@@ -153,17 +153,32 @@ namespace ReversiEngine {
         player_ = First;
     }
 
+    void Board::PlacePiece(size_t position, Player player) {
+        if (player == First) {
+            is_first_[position] = true;
+            is_first_vertical[CONV_POSITION_COL[position]] = true;
+            is_first_diagonal1[CONV_POSITION_DIAG1_POS[position]] = true;
+            is_first_diagonal2[CONV_POSITION_DIAG2_POS[position]] = true;
+        } else {
+            is_second_[position] = true;
+            is_second_vertical[CONV_POSITION_COL[position]] = true;
+            is_second_diagonal1[CONV_POSITION_DIAG1_POS[position]] = true;
+            is_second_diagonal2[CONV_POSITION_DIAG2_POS[position]] = true;
+        }
+    }
 
-    inline void Board::PlacePiece(size_t position, Player player) {
-        bool player_is_first = (player == First);
-        is_first_[position] = player_is_first;
-        is_second_[position] = !player_is_first;
-        is_first_vertical[CONV_POSITION_COL[position]] = player_is_first;
-        is_second_vertical[CONV_POSITION_COL[position]] = !player_is_first;
-        is_first_diagonal1[CONV_POSITION_DIAG1_POS[position]] = player_is_first;
-        is_second_diagonal1[CONV_POSITION_DIAG1_POS[position]] = !player_is_first;
-        is_first_diagonal2[CONV_POSITION_DIAG2_POS[position]] = player_is_first;
-        is_second_diagonal2[CONV_POSITION_DIAG2_POS[position]] = !player_is_first;
+    void Board::DeletePieces(Player player) {
+        if (player == First) {
+            is_second_ &= ~(is_first_);
+            is_second_vertical &= ~(is_first_vertical);
+            is_second_diagonal1 &= ~(is_first_diagonal1);
+            is_second_diagonal2 &= ~(is_first_diagonal2);
+        } else {
+            is_first_ &= ~(is_second_);
+            is_first_vertical &= ~(is_second_vertical);
+            is_first_diagonal1 &= ~(is_second_diagonal1);
+            is_first_diagonal2 &= ~(is_second_diagonal2);
+        }
     }
 
     inline void Board::PlacePiece(const Cell& cell, Player player) {
@@ -197,6 +212,7 @@ namespace ReversiEngine {
             board.PlacePiece(position, player_);
         }
         board.PlacePiece(cell, player_);
+        board.DeletePieces(player_);
         board.player_ = (player_ == Player::First ? Player::Second : Player::First);
         return board;
     }

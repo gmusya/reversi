@@ -65,6 +65,7 @@ namespace ReversiEngine {
         Bitset64 is_second_diagonal2;
         Player player_;
         int32_t eval;
+        void DeletePieces(Player player);
     };
 
 }// namespace ReversiEngine
