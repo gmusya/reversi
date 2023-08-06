@@ -67,7 +67,7 @@ namespace ReversiEngine {
             Board new_board = board.MakeMove(Cell{-1, -1});
             return -SmartEvaluation(new_board, depth - 1, -beta, -alpha);
         }
-        if (depth >= 2) {
+        if (depth >= 3) {
             auto& buffer = buffers2[depth];
             buffer.resize(possible_moves.size());
             for (size_t i = 0; i < possible_moves.size(); ++i) {

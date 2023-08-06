@@ -213,7 +213,7 @@ namespace ReversiEngine {
         }
     }// namespace
 
-    void Board::PossibleMovesHorizontal(std::bitset<64>& is_possible) const {
+    inline void Board::PossibleMovesHorizontal(std::bitset<64>& is_possible) const {
         auto first_set = Same(player_);
         auto second_set = Opposite(player_);
         auto first = first_set.to_ullong();
@@ -227,7 +227,7 @@ namespace ReversiEngine {
         }
     }
 
-    void Board::PossibleMovesVertical(std::bitset<64>& is_possible) const {
+    inline void Board::PossibleMovesVertical(std::bitset<64>& is_possible) const {
         auto first_set = Same(player_);
         auto second_set = Opposite(player_);
         auto value_first = first_set.to_ullong();
@@ -252,7 +252,7 @@ namespace ReversiEngine {
         }
     }
 
-    void Board::PossibleMovesDiagonal(std::bitset<64>& is_possible) const {
+    inline void Board::PossibleMovesDiagonal(std::bitset<64>& is_possible) const {
         auto first_set = Same(player_);
         auto second_set = Opposite(player_);
         auto value_first = first_set.to_ullong();
@@ -334,9 +334,108 @@ namespace ReversiEngine {
 
     void Board::PossibleMoves(std::vector<Cell>& result) const {
         std::bitset<64> is_possible;
-        PossibleMovesHorizontal(is_possible);
-        PossibleMovesVertical(is_possible);
-        PossibleMovesDiagonal(is_possible);
+        auto first_set = Same(player_);
+        auto second_set = Opposite(player_);
+        auto value_first = first_set.to_ullong();
+        auto value_second = second_set.to_ullong();
+        for (int32_t row = 0; row < 8; ++row) {
+            int shift = 8 * row;
+            auto first_mask = (value_first >> shift) & ((1 << 8) - 1);
+            auto second_mask = (value_second >> shift) & ((1 << 8) - 1);
+            auto x = precalced_check_line[(first_mask << 8) + second_mask];
+            is_possible |= std::bitset<64>(x.to_ullong() << shift);
+        }
+        for (int32_t col = 0; col < 8; ++col) {
+            auto x = (value_first >> col);
+            auto first_mask = (x & 1) + (((x >> 8) & 1) << 1) + (((x >> 16) & 1) << 2) +
+                              ((((x >> 24) & 1) << 3)) + (((x >> 32) & 1) << 4) +
+                              (((x >> 40) & 1) << 5) + (((x >> 48) & 1) << 6) +
+                              (((x >> 56) & 1) << 7);
+            x = (value_second >> col);
+            auto second_mask = (x & 1) + (((x >> 8) & 1) << 1) + (((x >> 16) & 1) << 2) +
+                               ((((x >> 24) & 1) << 3)) + (((x >> 32) & 1) << 4) +
+                               (((x >> 40) & 1) << 5) + (((x >> 48) & 1) << 6) +
+                               (((x >> 56) & 1) << 7);
+            auto res = precalced_check_line[(first_mask << 8) + second_mask];
+            for (int32_t i = 0; i < 8; ++i) {
+                if (res[i]) {
+                    is_possible[(i << 3) + col] = true;
+                }
+            }
+        }
+        for (int32_t col = 0; col < 6; ++col) {
+
+            auto x = (value_first >> col);
+            uint64_t first_mask = 0;
+            for (int32_t i = 0; i < 8 - col; ++i) {
+                first_mask |= ((x >> (i * 9)) & 1) << i;
+            }
+            x = (value_second >> col);
+            uint64_t second_mask = 0;
+            for (int32_t i = 0; i < 8 - col; ++i) {
+                second_mask |= ((x >> (i * 9)) & 1) << i;
+            }
+            auto res = precalced_check_line[(first_mask << 8) + second_mask];
+            for (int32_t i = 0; i < 8 - col; ++i) {
+                if (res[i]) {
+                    is_possible[(i << 3) + col + i] = true;
+                }
+            }
+        }
+        for (int32_t row = 1; row < 6; ++row) {
+            auto x = (value_first >> (row << 3));
+            uint64_t first_mask = 0;
+            for (int32_t i = 0; i < 8 - row; ++i) {
+                first_mask |= ((x >> (i * 9)) & 1) << i;
+            }
+            x = (value_second >> (row << 3));
+            uint64_t second_mask = 0;
+            for (int32_t i = 0; i < 8 - row; ++i) {
+                second_mask |= ((x >> (i * 9)) & 1) << i;
+            }
+            auto res = precalced_check_line[(first_mask << 8) + second_mask];
+            for (int32_t i = 0; i < 8 - row; ++i) {
+                if (res[i]) {
+                    is_possible[((i + row) << 3) + i] = true;
+                }
+            }
+        }
+        for (int32_t col = 2; col < 8; ++col) {
+            auto x = (value_first >> col);
+            uint64_t first_mask = 0;
+            for (int32_t i = 0; i < col + 1; ++i) {
+                first_mask |= ((x >> (i * 7)) & 1) << i;
+            }
+            x = (value_second >> col);
+            uint64_t second_mask = 0;
+            for (int32_t i = 0; i < col + 1; ++i) {
+                second_mask |= ((x >> (i * 7)) & 1) << i;
+            }
+            auto res = precalced_check_line[(first_mask << 8) + second_mask];
+            for (int32_t i = 0; i < col + 1; ++i) {
+                if (res[i]) {
+                    is_possible[(i << 3) + col - i] = true;
+                }
+            }
+        }
+        for (int32_t row = 1; row < 6; ++row) {
+            auto x = (value_first >> ((row << 3) + 7));
+            uint64_t first_mask = 0;
+            for (int32_t i = 0; i < 8 - row; ++i) {
+                first_mask |= ((x >> (i * 7)) & 1) << i;
+            }
+            x = (value_second >> ((row << 3) + 7));
+            uint64_t second_mask = 0;
+            for (int32_t i = 0; i < 8 - row; ++i) {
+                second_mask |= ((x >> (i * 7)) & 1) << i;
+            }
+            auto res = precalced_check_line[(first_mask << 8) + second_mask];
+            for (int32_t i = 0; i < 8 - row; ++i) {
+                if (res[i]) {
+                    is_possible[((row + i) << 3) + 7 - i] = true;
+                }
+            }
+        }
 
         BitsetToVector(is_possible, result);
     }
