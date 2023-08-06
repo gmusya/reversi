@@ -19,6 +19,16 @@ namespace ReversiEngine {
             { 30,   1,   1,   1,   1,   1,   1,  30},
             {100,  30,  30,  30,  30,  30,  30, 100}
         }};
+
+        const std::array<int, 64> CONV_ROW_TABLE = {
+                0,  8,  16, 24, 32, 40, 48, 56,
+                1,  9,  17, 25, 33, 41, 49, 57,
+                2,  10, 18, 26, 34, 42, 50, 58,
+                3,  11, 19, 27, 35, 43, 51, 59,
+                4,  12, 20, 28, 36, 44, 52, 60,
+                5,  13, 21, 29, 37, 45, 53, 61,
+                6,  14, 22, 30, 38, 46, 54, 62,
+                7,  15, 23, 31, 39, 47, 55, 63};
         // clang-format on
     }// namespace
 
@@ -100,6 +110,7 @@ namespace ReversiEngine {
         player_ = First;
     }
 
+
     void Board::PlacePiece(size_t position, Player player) {
         if (is_first_[position]) {
             eval -= CELL_COST[position >> 3][position & 7];
@@ -109,6 +120,8 @@ namespace ReversiEngine {
         }
         Same(player)[position] = true;
         Opposite(player)[position] = false;
+        SameVertical(player)[CONV_ROW_TABLE[position]] = true;
+        OppositeVertical(player)[CONV_ROW_TABLE[position]] = false;
         if (is_first_[position]) {
             eval += CELL_COST[position >> 3][position & 7];
         }
@@ -338,6 +351,10 @@ namespace ReversiEngine {
         auto second_set = Opposite(player_);
         auto value_first = first_set.to_ullong();
         auto value_second = second_set.to_ullong();
+        auto first_set_vertical = SameVertical(player_);
+        auto second_set_vertical = OppositeVertical(player_);
+        auto value_first_vertical = first_set_vertical.to_ullong();
+        auto value_second_vertical = second_set_vertical.to_ullong();
         for (int32_t row = 0; row < 8; ++row) {
             int shift = 8 * row;
             auto first_mask = (value_first >> shift) & ((1 << 8) - 1);
@@ -346,16 +363,9 @@ namespace ReversiEngine {
             is_possible |= Bitset64(x.to_ullong() << shift);
         }
         for (int32_t col = 0; col < 8; ++col) {
-            auto x = (value_first >> col);
-            auto first_mask = (x & 1) + (((x >> 8) & 1) << 1) + (((x >> 16) & 1) << 2) +
-                              ((((x >> 24) & 1) << 3)) + (((x >> 32) & 1) << 4) +
-                              (((x >> 40) & 1) << 5) + (((x >> 48) & 1) << 6) +
-                              (((x >> 56) & 1) << 7);
-            x = (value_second >> col);
-            auto second_mask = (x & 1) + (((x >> 8) & 1) << 1) + (((x >> 16) & 1) << 2) +
-                               ((((x >> 24) & 1) << 3)) + (((x >> 32) & 1) << 4) +
-                               (((x >> 40) & 1) << 5) + (((x >> 48) & 1) << 6) +
-                               (((x >> 56) & 1) << 7);
+            int shift = 8 * col;
+            auto first_mask = (value_first_vertical >> shift) & ((1 << 8) - 1);
+            auto second_mask = (value_second_vertical >> shift) & ((1 << 8) - 1);
             auto res = precalced_check_line[(first_mask << 8) + second_mask];
             for (int32_t i = 0; i < 8; ++i) {
                 if (res[i]) {
@@ -563,6 +573,38 @@ namespace ReversiEngine {
 
     int32_t Board::FinalEvaluation() const {
         return (player_ == First ? eval : -eval);
+    }
+
+    Bitset64& Board::SameVertical(Player player) {
+        if (player == First) {
+            return is_first_vertical;
+        } else {
+            return is_second_vertical;
+        }
+    }
+
+    Bitset64& Board::OppositeVertical(Player player) {
+        if (player == First) {
+            return is_second_vertical;
+        } else {
+            return is_first_vertical;
+        }
+    }
+
+    const Bitset64& Board::SameVertical(Player player) const {
+        if (player == First) {
+            return is_first_vertical;
+        } else {
+            return is_second_vertical;
+        }
+    }
+
+    const Bitset64& Board::OppositeVertical(Player player) const {
+        if (player == First) {
+            return is_second_vertical;
+        } else {
+            return is_first_vertical;
+        }
     }
 
 }// namespace ReversiEngine
