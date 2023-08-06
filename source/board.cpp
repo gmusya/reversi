@@ -1,15 +1,17 @@
 #include "board.h"
 
 #include <array>
+#include <cassert>
 
 std::array<Bitset8, 1 << 16> precalced_check_line;
 std::array<std::array<int32_t, 1 << 16>, 8> precalced_row_costs;
+std::array<std::array<Bitset8, 1 << 16>, 8> precalced_captures;
 
 namespace ReversiEngine {
 
     namespace {
         // clang-format off
-        const std::array<int, 64> CONV_POSITION_ROW = {
+        const std::array<uint8_t, 64> CONV_POSITION_ROW = {
             100,  30,  30,  30,  30,  30,  30, 100,
              30,   1,   1,   1,   1,   1,   1,  30,
              30,   1,   1,   1,   1,   1,   1,  30,
@@ -20,7 +22,7 @@ namespace ReversiEngine {
             100,  30,  30,  30,  30,  30,  30, 100
         };
 
-        const std::array<int, 64> CONV_POSITION_COL = {
+        const std::array<uint8_t, 64> CONV_POSITION_COL = {
                 0,  8, 16, 24, 32, 40, 48, 56,
                 1,  9, 17, 25, 33, 41, 49, 57,
                 2, 10, 18, 26, 34, 42, 50, 58,
@@ -31,7 +33,7 @@ namespace ReversiEngine {
                 7, 15, 23, 31, 39, 47, 55, 63
         };
 
-        const std::array<int, 64> CONV_POSITION_DIAG1_POS = {
+        const std::array<uint8_t, 64> CONV_POSITION_DIAG1_POS = {
                 28, 21, 15, 10,  6,  3,  1,  0,
                 36, 29, 22, 16, 11,  7,  4,  2,
                 43, 37, 30, 23, 17, 12,  8,  5,
@@ -42,7 +44,7 @@ namespace ReversiEngine {
                 63, 62, 60, 57, 53, 48, 42, 35
         };
 
-        const std::array<int, 64> CONV_POSITION_DIAG2_POS = {
+        const std::array<uint8_t, 64> CONV_POSITION_DIAG2_POS = {
                  0,  1,  3,  6, 10, 15, 21, 28,
                  2,  4,  7, 11, 16, 22, 29, 36,
                  5,  8, 12, 17, 23, 30, 37, 43,
@@ -53,6 +55,50 @@ namespace ReversiEngine {
                 35, 42, 48, 53, 57, 60, 62, 63
         };
         // clang-format on
+
+        constexpr std::array<uint8_t, 8> offsets_col_diag1 = {28, 21, 15, 10, 6, 3, 0, 0};
+
+        constexpr std::array<uint64_t, 8> col_diag1 = {(1ull << 36) - (1ull << 28),
+                                                       (1ull << 28) - (1ull << 21),
+                                                       (1ull << 21) - (1ull << 15),
+                                                       (1ull << 15) - (1ull << 10),
+                                                       (1ull << 10) - (1ull << 6),
+                                                       (1ull << 6) - (1ull << 3),
+                                                       0,
+                                                       0};
+
+        constexpr std::array<uint8_t, 8> offsets_row_diag1 = {0, 36, 43, 49, 54, 58, 0, 0};
+
+        constexpr std::array<uint64_t, 8> row_diag1 = {0,
+                                                       (1ull << 43) - (1ull << 36),
+                                                       (1ull << 49) - (1ull << 43),
+                                                       (1ull << 54) - (1ull << 49),
+                                                       (1ull << 58) - (1ull << 54),
+                                                       (1ull << 61) - (1ull << 58),
+                                                       0,
+                                                       0};
+
+        constexpr std::array<uint8_t, 8> offsets_col_diag2 = {0, 0, 3, 6, 10, 15, 21, 28};
+
+        constexpr std::array<uint64_t, 8> col_diag2 = {0,
+                                                       0,
+                                                       (1ull << 6) - (1ull << 3),
+                                                       (1ull << 10) - (1ull << 6),
+                                                       (1ull << 15) - (1ull << 10),
+                                                       (1ull << 21) - (1ull << 15),
+                                                       (1ull << 28) - (1ull << 21),
+                                                       (1ull << 36) - (1ull << 28)};
+
+        constexpr std::array<uint8_t, 8> offsets_row_diag2 = {28, 36, 43, 49, 54, 58, 0, 0};
+
+        constexpr std::array<uint64_t, 8> row_diag2 = {(1ull << 36) - (1ull << 28),
+                                                       (1ull << 43) - (1ull << 36),
+                                                       (1ull << 49) - (1ull << 43),
+                                                       (1ull << 54) - (1ull << 49),
+                                                       (1ull << 58) - (1ull << 54),
+                                                       (1ull << 61) - (1ull << 58),
+                                                       0,
+                                                       0};
     }// namespace
 
     void Board::InitPrecalc() const {
@@ -142,6 +188,53 @@ namespace ReversiEngine {
                 }
             }
         }
+        for (int32_t mask_first = 0; mask_first < (1 << 8); ++mask_first) {
+            for (int32_t mask_second = 0; mask_second < (1 << 8); ++mask_second) {
+                if (mask_first & mask_second) {
+                    continue;
+                }
+                Bitset8 is_first(mask_first);
+                Bitset8 is_second(mask_second);
+                for (int32_t position = 0; position < 8; ++position) {
+                    Bitset8 res;
+                    {
+                        Bitset8 cur;
+                        bool good = false;
+                        for (int32_t k = 1; position - k >= 0; ++k) {
+                            if (!is_first[position - k] && !is_second[position - k]) {
+                                break;
+                            }
+                            if (is_first[position - k]) {
+                                good = true;
+                                break;
+                            }
+                            cur[position - k] = true;
+                        }
+                        if (good) {
+                            res |= cur;
+                        }
+                    }
+                    {
+                        Bitset8 cur;
+                        bool good = false;
+                        for (int32_t k = 1; position + k < 8; ++k) {
+                            if (!is_first[position + k] && !is_second[position + k]) {
+                                break;
+                            }
+                            if (is_first[position + k]) {
+                                good = true;
+                                break;
+                            }
+                            cur[position + k] = true;
+                        }
+                        if (good) {
+                            res |= cur;
+                        }
+                    }
+                    precalced_captures[position][(mask_first << 8) + mask_second] = res;
+                }
+            }
+        }
     }
 
     Board::Board() {
@@ -153,7 +246,9 @@ namespace ReversiEngine {
         player_ = First;
     }
 
+    uint64_t counter = 0;
     void Board::PlacePiece(size_t position, Player player) {
+        ++counter;
         if (player == First) {
             is_first_[position] = true;
             is_first_vertical[CONV_POSITION_COL[position]] = true;
@@ -198,17 +293,89 @@ namespace ReversiEngine {
             board.player_ = (player_ == Player::First ? Player::Second : Player::First);
             return board;
         }
-        Bitset64 captured;
-        for (int32_t dcol = -1; dcol <= 1; ++dcol) {
-            for (int32_t drow = -1; drow <= 1; ++drow) {
-                if (dcol == 0 && drow == 0) {
-                    continue;
+        Bitset64 other_captured;
+        {
+            {
+                int shift = 8 * row;
+                auto first_mask = (Same(player_).to_ullong() >> shift) & ((1 << 8) - 1);
+                auto second_mask = (Opposite(player_).to_ullong() >> shift) & ((1 << 8) - 1);
+                auto x = precalced_captures[col][(first_mask << 8) + second_mask];
+                other_captured |= Bitset64(x.to_ullong() << shift);
+            }
+            {
+                int shift = 8 * col;
+                auto first_mask = (SameVertical(player_).to_ullong() >> shift) & ((1 << 8) - 1);
+                auto second_mask =
+                        (OppositeVertical(player_).to_ullong() >> shift) & ((1 << 8) - 1);
+                auto res = precalced_captures[row][(first_mask << 8) + second_mask];
+                for (int32_t i = 0; i < 8; ++i) {
+                    if (res[i]) {
+                        other_captured[(i << 3) + col] = true;
+                    }
                 }
-                captured |= GetCaptures(row, col, drow, dcol);
+            }
+            {
+                if (col >= row) {
+                    int32_t id = col - row;
+                    uint64_t val = col_diag1[id];
+                    uint64_t first_mask =
+                            (SameDiagonal1(player_).to_ullong() & val) >> offsets_col_diag1[id];
+                    uint64_t second_mask =
+                            (OppositeDiagonal1(player_).to_ullong() & val) >> offsets_col_diag1[id];
+                    auto res = precalced_captures[row][(first_mask << 8) + second_mask];
+                    for (int32_t i = 0; i < 8 - id; ++i) {
+                        if (res[i]) {
+                            other_captured[(i << 3) + id + i] = true;
+                        }
+                    }
+                } else {
+                    int32_t id = row - col;
+                    uint64_t val = row_diag1[id];
+                    uint64_t first_mask =
+                            (SameDiagonal1(player_).to_ullong() & val) >> offsets_row_diag1[id];
+                    uint64_t second_mask =
+                            (OppositeDiagonal1(player_).to_ullong() & val) >> offsets_row_diag1[id];
+                    auto res = precalced_captures[col][(first_mask << 8) + second_mask];
+                    for (int32_t i = 0; i < 8 - id; ++i) {
+                        if (res[i]) {
+                            other_captured[((i + id) << 3) + i] = true;
+                        }
+                    }
+                }
+            }
+            {
+                if (col + row <= 7) {
+                    int32_t id = col + row;
+                    uint64_t val = col_diag2[id];
+                    uint64_t first_mask =
+                            (SameDiagonal2(player_).to_ullong() & val) >> offsets_col_diag2[id];
+                    uint64_t second_mask =
+                            (OppositeDiagonal2(player_).to_ullong() & val) >> offsets_col_diag2[id];
+
+                    auto res = precalced_captures[row][(first_mask << 8) + second_mask];
+                    for (int32_t i = 0; i < id + 1; ++i) {
+                        if (res[i]) {
+                            other_captured[(i << 3) + id - i] = true;
+                        }
+                    }
+                } else {
+                    int32_t id = col + row - 7;
+                    uint64_t val = row_diag2[id];
+                    uint64_t first_mask =
+                            (SameDiagonal2(player_).to_ullong() & val) >> offsets_row_diag2[id];
+                    uint64_t second_mask =
+                            (OppositeDiagonal2(player_).to_ullong() & val) >> offsets_row_diag2[id];
+                    auto res = precalced_captures[row - id][(first_mask << 8) + second_mask];
+                    for (int32_t i = 0; i < 8 - id; ++i) {
+                        if (res[i]) {
+                            other_captured[((id + i) << 3) + 7 - i] = true;
+                        }
+                    }
+                }
             }
         }
-        for (size_t position = captured._Find_first(); position < 64;
-             position = captured._Find_next(position)) {
+        for (size_t position = other_captured._Find_first(); position < 64;
+             position = other_captured._Find_next(position)) {
             board.PlacePiece(position, player_);
         }
         board.PlacePiece(cell, player_);
@@ -232,53 +399,6 @@ namespace ReversiEngine {
                 }
             }
         }
-    }// namespace
-
-    namespace {
-
-        constexpr std::array<uint64_t, 8> offsets_col_diag1 = {28, 21, 15, 10, 6, 3, 0, 0};
-
-        constexpr std::array<uint64_t, 8> col_diag1 = {(1ull << 36) - (1ull << 28),
-                                                       (1ull << 28) - (1ull << 21),
-                                                       (1ull << 21) - (1ull << 15),
-                                                       (1ull << 15) - (1ull << 10),
-                                                       (1ull << 10) - (1ull << 6),
-                                                       (1ull << 6) - (1ull << 3),
-                                                       0,
-                                                       0};
-
-        constexpr std::array<uint64_t, 8> offsets_row_diag1 = {0, 36, 43, 49, 54, 58, 0, 0};
-
-        constexpr std::array<uint64_t, 8> row_diag1 = {0,
-                                                       (1ull << 43) - (1ull << 36),
-                                                       (1ull << 49) - (1ull << 43),
-                                                       (1ull << 54) - (1ull << 49),
-                                                       (1ull << 58) - (1ull << 54),
-                                                       (1ull << 61) - (1ull << 58),
-                                                       0,
-                                                       0};
-
-        constexpr std::array<uint64_t, 8> offsets_col_diag2 = {0, 0, 3, 6, 10, 15, 21, 28};
-
-        constexpr std::array<uint64_t, 8> col_diag2 = {0,
-                                                       0,
-                                                       (1ull << 6) - (1ull << 3),
-                                                       (1ull << 10) - (1ull << 6),
-                                                       (1ull << 15) - (1ull << 10),
-                                                       (1ull << 21) - (1ull << 15),
-                                                       (1ull << 28) - (1ull << 21),
-                                                       (1ull << 36) - (1ull << 28)};
-
-        constexpr std::array<uint64_t, 8> offsets_row_diag2 = {28, 36, 43, 49, 54, 58, 0, 0};
-
-        constexpr std::array<uint64_t, 8> row_diag2 = {(1ull << 36) - (1ull << 28),
-                                                       (1ull << 43) - (1ull << 36),
-                                                       (1ull << 49) - (1ull << 43),
-                                                       (1ull << 54) - (1ull << 49),
-                                                       (1ull << 58) - (1ull << 54),
-                                                       (1ull << 61) - (1ull << 58),
-                                                       0,
-                                                       0};
     }// namespace
 
     void Board::PossibleMoves(std::vector<Cell>& result) const {
