@@ -1,7 +1,6 @@
 #include "board.h"
 
 #include <array>
-#include <cassert>
 
 std::array<Bitset8, 1 << 16> precalced_check_line;
 std::array<std::array<int32_t, 1 << 16>, 8> precalced_row_costs;
@@ -238,7 +237,6 @@ namespace ReversiEngine {
     }
 
     Board::Board() {
-        eval = 0;
         PlacePiece(Cell{4, 3}, First);
         PlacePiece(Cell{3, 4}, First);
         PlacePiece(Cell{3, 3}, Second);
@@ -393,10 +391,8 @@ namespace ReversiEngine {
             result.clear();
             for (size_t position = is_possible._Find_first(); position < 64;
                  position = is_possible._Find_next(position)) {
-                if (is_possible[position]) {
-                    result.push_back({static_cast<int32_t>(position >> 3),
-                                      static_cast<int32_t>(position & 7)});
-                }
+                result.push_back(
+                        {static_cast<int32_t>(position >> 3), static_cast<int32_t>(position & 7)});
             }
         }
     }// namespace

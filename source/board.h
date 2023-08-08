@@ -52,9 +52,6 @@ namespace ReversiEngine {
 
         [[nodiscard]] const Bitset64& OppositeDiagonal2(Player player) const;
 
-        [[nodiscard]] Bitset64 GetCaptures(int32_t row, int32_t col, int32_t drow,
-                                           int32_t dcol) const;
-
         Bitset64 is_first_;
         Bitset64 is_second_;
         Bitset64 is_first_vertical;
@@ -64,7 +61,6 @@ namespace ReversiEngine {
         Bitset64 is_first_diagonal2;
         Bitset64 is_second_diagonal2;
         Player player_;
-        int32_t eval;
         void DeletePieces(Player player);
     };
 
