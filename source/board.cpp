@@ -481,21 +481,6 @@ namespace ReversiEngine {
         BitsetToVector(is_possible, result);
     }
 
-    Bitset64 Board::GetCaptures(int32_t row, int32_t col, int32_t drow, int32_t dcol) const {
-        Bitset64 res;
-        for (int32_t k = 1; IsInBoundingBox(Cell{row + k * drow, col + k * dcol}); ++k) {
-            int32_t position = Cell{row + k * drow, col + k * dcol}.ToInt();
-            if (!is_first_[position] && !is_second_[position]) {
-                return {};
-            }
-            if (Same(player_)[position]) {
-                return res;
-            }
-            res[position] = true;
-        }
-        return {};
-    }
-
     bool Board::GameEnded() const {
         return (PossibleMoves().empty() && (MakeMove(Cell{-1, -1})).PossibleMoves().empty());
     }
