@@ -45,7 +45,7 @@ namespace ReversiEngine {
     int32_t ReversiEngine::Engine::SmartEvaluation(const Board& board, int32_t depth, int32_t alpha,
                                                    int32_t beta) const {
         ++nodes;
-        if ((nodes & 255) == 0 && stop) {
+        if (stop) {
             return -INF;
         }
         if (depth == 0) {

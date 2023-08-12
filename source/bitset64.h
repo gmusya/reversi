@@ -1,3 +1,5 @@
+#include <bit>
+#include <bitset>
 #include <cstdint>
 
 struct Bitset8 {
@@ -47,20 +49,23 @@ struct Bitset8 {
         if (!value) {
             return 8;
         }
-        return __builtin_ctzll(value);
+        return __builtin_ctz(value);
+    }
+
+    [[nodiscard]] inline uint64_t _Find_last() const {
+        return 8 - std::countl_zero(value);
     }
 
     [[nodiscard]] inline uint64_t _Find_next(uint64_t index) const {
         if (index >= 7) {
             return 8;
         }
-        if (!(value & ~((1 << (index + 1)) - 1))) {
+        if (!(value & ~((1ull << (index + 1)) - 1))) {
             return 8;
         }
-        return __builtin_ctzll(value & ~((1 << (index + 1)) - 1));
+        return __builtin_ctz(value & ~((1ull << (index + 1)) - 1));
     }
 };
-
 
 struct Bitset64 {
     uint64_t value = 0;
@@ -74,7 +79,7 @@ struct Bitset64 {
         Bitset64& ref;
         uint64_t bit;
 
-        BitsetReference& operator=(bool res) {
+        inline BitsetReference& operator=(bool res) {
             if (res) {
                 ref.value |= (1ull << bit);
             } else {
@@ -83,7 +88,7 @@ struct Bitset64 {
             return *this;
         }
 
-        operator bool() const {
+        inline explicit operator bool() const {
             return ref.value & (1ull << bit);
         }
     };

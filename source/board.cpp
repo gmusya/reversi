@@ -306,10 +306,8 @@ namespace ReversiEngine {
                 auto first_mask = (is_first_vertical.to_ullong() >> shift) & ((1 << 8) - 1);
                 auto second_mask = (is_second_vertical.to_ullong() >> shift) & ((1 << 8) - 1);
                 auto res = precalced_captures[row][(first_mask << 8) + second_mask];
-                for (int32_t i = 0; i < 8; ++i) {
-                    if (res[i]) {
-                        other_captured[(i << 3) + col] = true;
-                    }
+                for (uint64_t i = res._Find_first(); i < res._Find_last(); ++i) {
+                    other_captured[(i << 3) + col] = true;
                 }
             }
             {
@@ -321,10 +319,8 @@ namespace ReversiEngine {
                     uint64_t second_mask =
                             (is_second_diagonal1.to_ullong() & val) >> offsets_col_diag1[id];
                     auto res = precalced_captures[row][(first_mask << 8) + second_mask];
-                    for (int32_t i = 0; i < 8 - id; ++i) {
-                        if (res[i]) {
-                            other_captured[(i << 3) + id + i] = true;
-                        }
+                    for (uint64_t i = res._Find_first(); i < res._Find_last(); ++i) {
+                        other_captured[(i << 3) + id + i] = true;
                     }
                 } else {
                     int32_t id = row - col;
@@ -334,10 +330,8 @@ namespace ReversiEngine {
                     uint64_t second_mask =
                             (is_second_diagonal1.to_ullong() & val) >> offsets_row_diag1[id];
                     auto res = precalced_captures[col][(first_mask << 8) + second_mask];
-                    for (int32_t i = 0; i < 8 - id; ++i) {
-                        if (res[i]) {
-                            other_captured[((i + id) << 3) + i] = true;
-                        }
+                    for (uint64_t i = res._Find_first(); i < res._Find_last(); ++i) {
+                        other_captured[((i + id) << 3) + i] = true;
                     }
                 }
             }
@@ -351,10 +345,8 @@ namespace ReversiEngine {
                             (is_second_diagonal2.to_ullong() & val) >> offsets_col_diag2[id];
 
                     auto res = precalced_captures[row][(first_mask << 8) + second_mask];
-                    for (int32_t i = 0; i < id + 1; ++i) {
-                        if (res[i]) {
-                            other_captured[(i << 3) + id - i] = true;
-                        }
+                    for (uint64_t i = res._Find_first(); i < res._Find_last(); ++i) {
+                        other_captured[(i << 3) + id - i] = true;
                     }
                 } else {
                     int32_t id = col + row - 7;
@@ -364,10 +356,8 @@ namespace ReversiEngine {
                     uint64_t second_mask =
                             (is_second_diagonal2.to_ullong() & val) >> offsets_row_diag2[id];
                     auto res = precalced_captures[row - id][(first_mask << 8) + second_mask];
-                    for (int32_t i = 0; i < 8 - id; ++i) {
-                        if (res[i]) {
-                            other_captured[((id + i) << 3) + 7 - i] = true;
-                        }
+                    for (uint64_t i = res._Find_first(); i < res._Find_last(); ++i) {
+                        other_captured[((id + i) << 3) + 7 - i] = true;
                     }
                 }
             }
