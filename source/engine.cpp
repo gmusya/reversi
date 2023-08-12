@@ -62,7 +62,7 @@ namespace ReversiEngine {
 
         if (depth >= 3) {
             auto& boards = buffers3[depth];
-            buffers3.clear();
+            boards.resize(possible_moves.size());
             for (size_t i = 0; i < possible_moves.size(); ++i) {
                 boards[i] = board.MakeMove(possible_moves[i]);
             }
