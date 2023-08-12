@@ -34,23 +34,6 @@ namespace ReversiEngine {
 
         void PlacePiece(const Cell& cell, Player player);
 
-        static bool IsInBoundingBox(const Cell& cell);
-
-        [[nodiscard]] const Bitset64& Same(Player player) const;
-
-        [[nodiscard]] const Bitset64& Opposite(Player player) const;
-
-        [[nodiscard]] const Bitset64& SameVertical(Player player) const;
-
-        [[nodiscard]] const Bitset64& OppositeVertical(Player player) const;
-
-        [[nodiscard]] const Bitset64& SameDiagonal1(Player player) const;
-
-        [[nodiscard]] const Bitset64& OppositeDiagonal1(Player player) const;
-
-        [[nodiscard]] const Bitset64& SameDiagonal2(Player player) const;
-
-        [[nodiscard]] const Bitset64& OppositeDiagonal2(Player player) const;
 
         Bitset64 is_first_;
         Bitset64 is_second_;
@@ -61,7 +44,8 @@ namespace ReversiEngine {
         Bitset64 is_first_diagonal2;
         Bitset64 is_second_diagonal2;
         Player player_;
-        void DeletePieces(Player player);
+        void DeletePieces();
+        void PlacePiece(size_t position);
     };
 
 }// namespace ReversiEngine
