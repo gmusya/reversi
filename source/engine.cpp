@@ -108,7 +108,7 @@ namespace ReversiEngine {
         } else /* depth == 1 */ {
             for (auto cell : possible_moves) {
                 ++nodes;
-                int32_t candidate_value = -board.MakeMove(cell).FinalEvaluation();
+                int32_t candidate_value = -board.MakeMoveLast(cell).FinalEvaluation();
                 if (candidate_value >= beta) {
                     return candidate_value;
                 }

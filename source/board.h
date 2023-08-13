@@ -21,6 +21,8 @@ namespace ReversiEngine {
 
         [[nodiscard]] Board MakeMove(const Cell& cell) const;
 
+        [[nodiscard]] Board MakeMoveLast(const Cell& cell) const;
+
         [[nodiscard]] int32_t FinalEvaluation() const;
 
         [[nodiscard]] bool GameEnded() const;
@@ -46,6 +48,8 @@ namespace ReversiEngine {
         Player player_;
         void DeletePieces();
         void PlacePiece(size_t position);
+        void DeletePiecesLast();
+        void PlacePieceLast(size_t position);
     };
 
 }// namespace ReversiEngine

@@ -275,10 +275,20 @@ namespace ReversiEngine {
         is_second_diagonal2 &= ~(is_first_diagonal2);
     }
 
+    void Board::DeletePiecesLast() {
+        is_second_ &= ~(is_first_);
+    }
+
+    void Board::PlacePieceLast(size_t position) {
+        is_first_[position] = true;
+    }
+
     inline void Board::PlacePiece(const Cell& cell, Player player) {
         int32_t position = cell.ToInt();
         PlacePiece(position, player);
     }
+
+
 
     Board Board::MakeMove(const Cell& cell) const {
         int32_t col = cell.col;
@@ -748,6 +758,94 @@ namespace ReversiEngine {
                                       [(first_mask << 8) + second_mask];
         }
         return res;
+    }
+
+    Board Board::MakeMoveLast(const Cell& cell) const {
+        int32_t col = cell.col;
+        int32_t row = cell.row;
+        Board board = *this;
+        if (col == -1 && row == -1) {
+            std::swap(board.is_first_, board.is_second_);
+            std::swap(board.is_first_vertical, board.is_second_vertical);
+            std::swap(board.is_first_diagonal1, board.is_second_diagonal1);
+            std::swap(board.is_first_diagonal2, board.is_second_diagonal2);
+            board.player_ = (player_ == Player::First ? Player::Second : Player::First);
+            return board;
+        }
+        {
+            {
+                int shift = 8 * row;
+                auto first_mask = (is_first_.to_ullong() >> shift) & ((1 << 8) - 1);
+                auto second_mask = (is_second_.to_ullong() >> shift) & ((1 << 8) - 1);
+                auto x = precalced_captures[col][(first_mask << 8) + second_mask];
+                board.is_first_ |= Bitset64(x.to_ullong() << shift);
+            }
+            {
+                int shift = 8 * col;
+                auto first_mask = (is_first_vertical.to_ullong() >> shift) & ((1 << 8) - 1);
+                auto second_mask = (is_second_vertical.to_ullong() >> shift) & ((1 << 8) - 1);
+                auto res = precalced_captures[row][(first_mask << 8) + second_mask];
+                for (uint64_t i = res._Find_first(); i < res._Find_last(); ++i) {
+                    board.is_first_[(i << 3) + col] = true;
+                }
+            }
+            {
+                if (col >= row) {
+                    int32_t id = col - row;
+                    uint64_t val = col_diag1[id];
+                    uint64_t first_mask =
+                            (is_first_diagonal1.to_ullong() & val) >> offsets_col_diag1[id];
+                    uint64_t second_mask =
+                            (is_second_diagonal1.to_ullong() & val) >> offsets_col_diag1[id];
+                    auto res = precalced_captures[row][(first_mask << 8) + second_mask];
+                    for (uint64_t i = res._Find_first(); i < res._Find_last(); ++i) {
+                        board.is_first_[(i << 3) + id + i] = true;
+                    }
+                } else {
+                    int32_t id = row - col;
+                    uint64_t val = row_diag1[id];
+                    uint64_t first_mask =
+                            (is_first_diagonal1.to_ullong() & val) >> offsets_row_diag1[id];
+                    uint64_t second_mask =
+                            (is_second_diagonal1.to_ullong() & val) >> offsets_row_diag1[id];
+                    auto res = precalced_captures[col][(first_mask << 8) + second_mask];
+                    for (uint64_t i = res._Find_first(); i < res._Find_last(); ++i) {
+                        board.is_first_[((i + id) << 3) + i] = true;
+                    }
+                }
+            }
+            {
+                if (col + row <= 7) {
+                    int32_t id = col + row;
+                    uint64_t val = col_diag2[id];
+                    uint64_t first_mask =
+                            (is_first_diagonal2.to_ullong() & val) >> offsets_col_diag2[id];
+                    uint64_t second_mask =
+                            (is_second_diagonal2.to_ullong() & val) >> offsets_col_diag2[id];
+
+                    auto res = precalced_captures[row][(first_mask << 8) + second_mask];
+                    for (uint64_t i = res._Find_first(); i < res._Find_last(); ++i) {
+                        board.is_first_[(i << 3) + id - i] = true;
+                    }
+                } else {
+                    int32_t id = col + row - 7;
+                    uint64_t val = row_diag2[id];
+                    uint64_t first_mask =
+                            (is_first_diagonal2.to_ullong() & val) >> offsets_row_diag2[id];
+                    uint64_t second_mask =
+                            (is_second_diagonal2.to_ullong() & val) >> offsets_row_diag2[id];
+                    auto res = precalced_captures[row - id][(first_mask << 8) + second_mask];
+                    for (uint64_t i = res._Find_first(); i < res._Find_last(); ++i) {
+                        board.is_first_[((id + i) << 3) + 7 - i] = true;
+                    }
+                }
+            }
+        }
+        board.PlacePieceLast(cell.ToInt());
+        board.DeletePiecesLast();
+        std::swap(board.is_first_, board.is_second_);
+        board.player_ = (player_ == Player::First ? Player::Second : Player::First);
+        return board;
     }
 
 }// namespace ReversiEngine
