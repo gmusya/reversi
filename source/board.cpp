@@ -395,8 +395,6 @@ namespace ReversiEngine {
         Bitset64 is_possible;
         auto value_first = is_first_.to_ullong();
         auto value_second = is_second_.to_ullong();
-        auto value_first_vertical = is_first_vertical.to_ullong();
-        auto value_second_vertical = is_second_vertical.to_ullong();
         for (int32_t row = 0; row < 8; ++row) {
             int shift = 8 * row;
             auto first_mask = (value_first >> shift) & ((1 << 8) - 1);
@@ -404,63 +402,301 @@ namespace ReversiEngine {
             auto x = precalced_check_line[(first_mask << 8) + second_mask];
             is_possible |= Bitset64(x.to_ullong() << shift);
         }
-        for (int32_t col = 0; col < 8; ++col) {
-            int shift = 8 * col;
-            auto first_mask = (value_first_vertical >> shift) & ((1 << 8) - 1);
-            auto second_mask = (value_second_vertical >> shift) & ((1 << 8) - 1);
+        value_first = is_first_vertical.to_ullong();
+        value_second = is_second_vertical.to_ullong();
+        {
+            auto first_mask = (value_first >> 0) & ((1 << 8) - 1);
+            auto second_mask = (value_second >> 0) & ((1 << 8) - 1);
             auto res = precalced_check_line[(first_mask << 8) + second_mask];
-            for (int32_t i = 0; i < 8; ++i) {
-                if (res[i]) {
-                    is_possible[(i << 3) + col] = true;
-                }
-            }
+            is_possible.value |= ((res.to_ullong() >> 0) & 1) << ((0 << 3) + 0);
+            is_possible.value |= ((res.to_ullong() >> 1) & 1) << ((1 << 3) + 0);
+            is_possible.value |= ((res.to_ullong() >> 2) & 1) << ((2 << 3) + 0);
+            is_possible.value |= ((res.to_ullong() >> 3) & 1) << ((3 << 3) + 0);
+            is_possible.value |= ((res.to_ullong() >> 4) & 1) << ((4 << 3) + 0);
+            is_possible.value |= ((res.to_ullong() >> 5) & 1) << ((5 << 3) + 0);
+            is_possible.value |= ((res.to_ullong() >> 6) & 1) << ((6 << 3) + 0);
+            is_possible.value |= ((res.to_ullong() >> 7) & 1) << ((7 << 3) + 0);
         }
-        for (int32_t col = 0; col < 6; ++col) {
-            uint64_t val = col_diag1[col];
-            uint64_t first_mask = (is_first_diagonal1.to_ullong() & val) >> offsets_col_diag1[col];
-            uint64_t second_mask =
-                    (is_second_diagonal1.to_ullong() & val) >> offsets_col_diag1[col];
+        {
+            auto first_mask = (value_first >> 8) & ((1 << 8) - 1);
+            auto second_mask = (value_second >> 8) & ((1 << 8) - 1);
             auto res = precalced_check_line[(first_mask << 8) + second_mask];
-            for (int32_t i = 0; i < 8 - col; ++i) {
-                if (res[i]) {
-                    is_possible[(i << 3) + col + i] = true;
-                }
-            }
+            is_possible.value |= ((res.to_ullong() >> 0) & 1) << ((0 << 3) + 1);
+            is_possible.value |= ((res.to_ullong() >> 1) & 1) << ((1 << 3) + 1);
+            is_possible.value |= ((res.to_ullong() >> 2) & 1) << ((2 << 3) + 1);
+            is_possible.value |= ((res.to_ullong() >> 3) & 1) << ((3 << 3) + 1);
+            is_possible.value |= ((res.to_ullong() >> 4) & 1) << ((4 << 3) + 1);
+            is_possible.value |= ((res.to_ullong() >> 5) & 1) << ((5 << 3) + 1);
+            is_possible.value |= ((res.to_ullong() >> 6) & 1) << ((6 << 3) + 1);
+            is_possible.value |= ((res.to_ullong() >> 7) & 1) << ((7 << 3) + 1);
         }
-        for (int32_t row = 1; row < 6; ++row) {
-            uint64_t val = row_diag1[row];
-            uint64_t first_mask = (is_first_diagonal1.to_ullong() & val) >> offsets_row_diag1[row];
-            uint64_t second_mask =
-                    (is_second_diagonal1.to_ullong() & val) >> offsets_row_diag1[row];
+        {
+            auto first_mask = (value_first >> 16) & ((1 << 8) - 1);
+            auto second_mask = (value_second >> 16) & ((1 << 8) - 1);
             auto res = precalced_check_line[(first_mask << 8) + second_mask];
-            for (int32_t i = 0; i < 8 - row; ++i) {
-                if (res[i]) {
-                    is_possible[((i + row) << 3) + i] = true;
-                }
-            }
+            is_possible.value |= ((res.to_ullong() >> 0) & 1) << ((0 << 3) + 2);
+            is_possible.value |= ((res.to_ullong() >> 1) & 1) << ((1 << 3) + 2);
+            is_possible.value |= ((res.to_ullong() >> 2) & 1) << ((2 << 3) + 2);
+            is_possible.value |= ((res.to_ullong() >> 3) & 1) << ((3 << 3) + 2);
+            is_possible.value |= ((res.to_ullong() >> 4) & 1) << ((4 << 3) + 2);
+            is_possible.value |= ((res.to_ullong() >> 5) & 1) << ((5 << 3) + 2);
+            is_possible.value |= ((res.to_ullong() >> 6) & 1) << ((6 << 3) + 2);
+            is_possible.value |= ((res.to_ullong() >> 7) & 1) << ((7 << 3) + 2);
         }
-        for (int32_t col = 2; col < 8; ++col) {
-            uint64_t val = col_diag2[col];
-            uint64_t first_mask = (is_first_diagonal2.to_ullong() & val) >> offsets_col_diag2[col];
-            uint64_t second_mask =
-                    (is_second_diagonal2.to_ullong() & val) >> offsets_col_diag2[col];
+        {
+            auto first_mask = (value_first >> 24) & ((1 << 8) - 1);
+            auto second_mask = (value_second >> 24) & ((1 << 8) - 1);
             auto res = precalced_check_line[(first_mask << 8) + second_mask];
-            for (int32_t i = 0; i < col + 1; ++i) {
-                if (res[i]) {
-                    is_possible[(i << 3) + col - i] = true;
-                }
-            }
+            is_possible.value |= ((res.to_ullong() >> 0) & 1) << ((0 << 3) + 3);
+            is_possible.value |= ((res.to_ullong() >> 1) & 1) << ((1 << 3) + 3);
+            is_possible.value |= ((res.to_ullong() >> 2) & 1) << ((2 << 3) + 3);
+            is_possible.value |= ((res.to_ullong() >> 3) & 1) << ((3 << 3) + 3);
+            is_possible.value |= ((res.to_ullong() >> 4) & 1) << ((4 << 3) + 3);
+            is_possible.value |= ((res.to_ullong() >> 5) & 1) << ((5 << 3) + 3);
+            is_possible.value |= ((res.to_ullong() >> 6) & 1) << ((6 << 3) + 3);
+            is_possible.value |= ((res.to_ullong() >> 7) & 1) << ((7 << 3) + 3);
+        }
+        {
+            auto first_mask = (value_first >> 32) & ((1 << 8) - 1);
+            auto second_mask = (value_second >> 32) & ((1 << 8) - 1);
+            auto res = precalced_check_line[(first_mask << 8) + second_mask];
+            is_possible.value |= ((res.to_ullong() >> 0) & 1) << ((0 << 3) + 4);
+            is_possible.value |= ((res.to_ullong() >> 1) & 1) << ((1 << 3) + 4);
+            is_possible.value |= ((res.to_ullong() >> 2) & 1) << ((2 << 3) + 4);
+            is_possible.value |= ((res.to_ullong() >> 3) & 1) << ((3 << 3) + 4);
+            is_possible.value |= ((res.to_ullong() >> 4) & 1) << ((4 << 3) + 4);
+            is_possible.value |= ((res.to_ullong() >> 5) & 1) << ((5 << 3) + 4);
+            is_possible.value |= ((res.to_ullong() >> 6) & 1) << ((6 << 3) + 4);
+            is_possible.value |= ((res.to_ullong() >> 7) & 1) << ((7 << 3) + 4);
+        }
+        {
+            auto first_mask = (value_first >> 40) & ((1 << 8) - 1);
+            auto second_mask = (value_second >> 40) & ((1 << 8) - 1);
+            auto res = precalced_check_line[(first_mask << 8) + second_mask];
+            is_possible.value |= ((res.to_ullong() >> 0) & 1) << ((0 << 3) + 5);
+            is_possible.value |= ((res.to_ullong() >> 1) & 1) << ((1 << 3) + 5);
+            is_possible.value |= ((res.to_ullong() >> 2) & 1) << ((2 << 3) + 5);
+            is_possible.value |= ((res.to_ullong() >> 3) & 1) << ((3 << 3) + 5);
+            is_possible.value |= ((res.to_ullong() >> 4) & 1) << ((4 << 3) + 5);
+            is_possible.value |= ((res.to_ullong() >> 5) & 1) << ((5 << 3) + 5);
+            is_possible.value |= ((res.to_ullong() >> 6) & 1) << ((6 << 3) + 5);
+            is_possible.value |= ((res.to_ullong() >> 7) & 1) << ((7 << 3) + 5);
+        }
+        {
+            auto first_mask = (value_first >> 48) & ((1 << 8) - 1);
+            auto second_mask = (value_second >> 48) & ((1 << 8) - 1);
+            auto res = precalced_check_line[(first_mask << 8) + second_mask];
+            is_possible.value |= ((res.to_ullong() >> 0) & 1) << ((0 << 3) + 6);
+            is_possible.value |= ((res.to_ullong() >> 1) & 1) << ((1 << 3) + 6);
+            is_possible.value |= ((res.to_ullong() >> 2) & 1) << ((2 << 3) + 6);
+            is_possible.value |= ((res.to_ullong() >> 3) & 1) << ((3 << 3) + 6);
+            is_possible.value |= ((res.to_ullong() >> 4) & 1) << ((4 << 3) + 6);
+            is_possible.value |= ((res.to_ullong() >> 5) & 1) << ((5 << 3) + 6);
+            is_possible.value |= ((res.to_ullong() >> 6) & 1) << ((6 << 3) + 6);
+            is_possible.value |= ((res.to_ullong() >> 7) & 1) << ((7 << 3) + 6);
+        }
+        {
+            auto first_mask = (value_first >> 56) & ((1 << 8) - 1);
+            auto second_mask = (value_second >> 56) & ((1 << 8) - 1);
+            auto res = precalced_check_line[(first_mask << 8) + second_mask];
+            is_possible.value |= ((res.to_ullong() >> 0) & 1) << ((0 << 3) + 7);
+            is_possible.value |= ((res.to_ullong() >> 1) & 1) << ((1 << 3) + 7);
+            is_possible.value |= ((res.to_ullong() >> 2) & 1) << ((2 << 3) + 7);
+            is_possible.value |= ((res.to_ullong() >> 3) & 1) << ((3 << 3) + 7);
+            is_possible.value |= ((res.to_ullong() >> 4) & 1) << ((4 << 3) + 7);
+            is_possible.value |= ((res.to_ullong() >> 5) & 1) << ((5 << 3) + 7);
+            is_possible.value |= ((res.to_ullong() >> 6) & 1) << ((6 << 3) + 7);
+            is_possible.value |= ((res.to_ullong() >> 7) & 1) << ((7 << 3) + 7);
+        }
+        value_first = is_first_diagonal1.to_ullong();
+        value_second = is_second_diagonal1.to_ullong();
+
+        {
+            uint64_t first_mask = (value_first & 68451041280) >> 28;
+            uint64_t second_mask = (value_second & 68451041280) >> 28;
+            auto res = precalced_check_line[(first_mask << 8) + second_mask];
+            is_possible.value |= ((res.to_ullong() >> 0) & 1) << ((0 << 3) + 0);
+            is_possible.value |= ((res.to_ullong() >> 1) & 1) << ((1 << 3) + 1);
+            is_possible.value |= ((res.to_ullong() >> 2) & 1) << ((2 << 3) + 2);
+            is_possible.value |= ((res.to_ullong() >> 3) & 1) << ((3 << 3) + 3);
+            is_possible.value |= ((res.to_ullong() >> 4) & 1) << ((4 << 3) + 4);
+            is_possible.value |= ((res.to_ullong() >> 5) & 1) << ((5 << 3) + 5);
+            is_possible.value |= ((res.to_ullong() >> 6) & 1) << ((6 << 3) + 6);
+            is_possible.value |= ((res.to_ullong() >> 7) & 1) << ((7 << 3) + 7);
+        }
+        {
+            uint64_t first_mask = (value_first & 266338304) >> 21;
+            uint64_t second_mask = (value_second & 266338304) >> 21;
+            auto res = precalced_check_line[(first_mask << 8) + second_mask];
+            is_possible.value |= ((res.to_ullong() >> 0) & 1) << ((0 << 3) + 1);
+            is_possible.value |= ((res.to_ullong() >> 1) & 1) << ((1 << 3) + 2);
+            is_possible.value |= ((res.to_ullong() >> 2) & 1) << ((2 << 3) + 3);
+            is_possible.value |= ((res.to_ullong() >> 3) & 1) << ((3 << 3) + 4);
+            is_possible.value |= ((res.to_ullong() >> 4) & 1) << ((4 << 3) + 5);
+            is_possible.value |= ((res.to_ullong() >> 5) & 1) << ((5 << 3) + 6);
+            is_possible.value |= ((res.to_ullong() >> 6) & 1) << ((6 << 3) + 7);
+        }
+        {
+            uint64_t first_mask = (value_first & 2064384) >> 15;
+            uint64_t second_mask = (value_second & 2064384) >> 15;
+            auto res = precalced_check_line[(first_mask << 8) + second_mask];
+            is_possible.value |= ((res.to_ullong() >> 0) & 1) << ((0 << 3) + 2);
+            is_possible.value |= ((res.to_ullong() >> 1) & 1) << ((1 << 3) + 3);
+            is_possible.value |= ((res.to_ullong() >> 2) & 1) << ((2 << 3) + 4);
+            is_possible.value |= ((res.to_ullong() >> 3) & 1) << ((3 << 3) + 5);
+            is_possible.value |= ((res.to_ullong() >> 4) & 1) << ((4 << 3) + 6);
+            is_possible.value |= ((res.to_ullong() >> 5) & 1) << ((5 << 3) + 7);
+        }
+        {
+            uint64_t first_mask = (value_first & 31744) >> 10;
+            uint64_t second_mask = (value_second & 31744) >> 10;
+            auto res = precalced_check_line[(first_mask << 8) + second_mask];
+            is_possible.value |= ((res.to_ullong() >> 0) & 1) << ((0 << 3) + 3);
+            is_possible.value |= ((res.to_ullong() >> 1) & 1) << ((1 << 3) + 4);
+            is_possible.value |= ((res.to_ullong() >> 2) & 1) << ((2 << 3) + 5);
+            is_possible.value |= ((res.to_ullong() >> 3) & 1) << ((3 << 3) + 6);
+            is_possible.value |= ((res.to_ullong() >> 4) & 1) << ((4 << 3) + 7);
+        }
+        {
+            uint64_t first_mask = (value_first & 960) >> 6;
+            uint64_t second_mask = (value_second & 960) >> 6;
+            auto res = precalced_check_line[(first_mask << 8) + second_mask];
+            is_possible.value |= ((res.to_ullong() >> 0) & 1) << ((0 << 3) + 4);
+            is_possible.value |= ((res.to_ullong() >> 1) & 1) << ((1 << 3) + 5);
+            is_possible.value |= ((res.to_ullong() >> 2) & 1) << ((2 << 3) + 6);
+            is_possible.value |= ((res.to_ullong() >> 3) & 1) << ((3 << 3) + 7);
+        }
+        {
+            uint64_t first_mask = (value_first & 56) >> 3;
+            uint64_t second_mask = (value_second & 56) >> 3;
+            auto res = precalced_check_line[(first_mask << 8) + second_mask];
+            is_possible.value |= ((res.to_ullong() >> 0) & 1) << ((0 << 3) + 5);
+            is_possible.value |= ((res.to_ullong() >> 1) & 1) << ((1 << 3) + 6);
+            is_possible.value |= ((res.to_ullong() >> 2) & 1) << ((2 << 3) + 7);
+        }
+
+        {
+            uint64_t first_mask = (value_first & 8727373545472) >> 36;
+            uint64_t second_mask = (value_second & 8727373545472) >> 36;
+            auto res = precalced_check_line[(first_mask << 8) + second_mask];
+            is_possible.value |= ((res.to_ullong() >> 0) & 1) << (((1) << 3) + 0);
+            is_possible.value |= ((res.to_ullong() >> 1) & 1) << (((2) << 3) + 1);
+            is_possible.value |= ((res.to_ullong() >> 2) & 1) << (((3) << 3) + 2);
+            is_possible.value |= ((res.to_ullong() >> 3) & 1) << (((4) << 3) + 3);
+            is_possible.value |= ((res.to_ullong() >> 4) & 1) << (((5) << 3) + 4);
+            is_possible.value |= ((res.to_ullong() >> 5) & 1) << (((6) << 3) + 5);
+            is_possible.value |= ((res.to_ullong() >> 6) & 1) << (((7) << 3) + 6);
+        }
+        {
+            uint64_t first_mask = (value_first & 554153860399104) >> 43;
+            uint64_t second_mask = (value_second & 554153860399104) >> 43;
+            auto res = precalced_check_line[(first_mask << 8) + second_mask];
+            is_possible.value |= ((res.to_ullong() >> 0) & 1) << (((2) << 3) + 0);
+            is_possible.value |= ((res.to_ullong() >> 1) & 1) << (((3) << 3) + 1);
+            is_possible.value |= ((res.to_ullong() >> 2) & 1) << (((4) << 3) + 2);
+            is_possible.value |= ((res.to_ullong() >> 3) & 1) << (((5) << 3) + 3);
+            is_possible.value |= ((res.to_ullong() >> 4) & 1) << (((6) << 3) + 4);
+            is_possible.value |= ((res.to_ullong() >> 5) & 1) << (((7) << 3) + 5);
+        }
+        {
+            uint64_t first_mask = (value_first & 17451448556060672) >> 49;
+            uint64_t second_mask = (value_second & 17451448556060672) >> 49;
+            auto res = precalced_check_line[(first_mask << 8) + second_mask];
+            is_possible.value |= ((res.to_ullong() >> 0) & 1) << (((3) << 3) + 0);
+            is_possible.value |= ((res.to_ullong() >> 1) & 1) << (((4) << 3) + 1);
+            is_possible.value |= ((res.to_ullong() >> 2) & 1) << (((5) << 3) + 2);
+            is_possible.value |= ((res.to_ullong() >> 3) & 1) << (((6) << 3) + 3);
+            is_possible.value |= ((res.to_ullong() >> 4) & 1) << (((7) << 3) + 4);
+        }
+        {
+            uint64_t first_mask = (value_first & 270215977642229760) >> 54;
+            uint64_t second_mask = (value_second & 270215977642229760) >> 54;
+            auto res = precalced_check_line[(first_mask << 8) + second_mask];
+            is_possible.value |= ((res.to_ullong() >> 0) & 1) << (((4) << 3) + 0);
+            is_possible.value |= ((res.to_ullong() >> 1) & 1) << (((5) << 3) + 1);
+            is_possible.value |= ((res.to_ullong() >> 2) & 1) << (((6) << 3) + 2);
+            is_possible.value |= ((res.to_ullong() >> 3) & 1) << (((7) << 3) + 3);
+        }
+        {
+            uint64_t first_mask = (value_first & 2017612633061982208) >> 58;
+            uint64_t second_mask = (value_second & 2017612633061982208) >> 58;
+            auto res = precalced_check_line[(first_mask << 8) + second_mask];
+            is_possible.value |= ((res.to_ullong() >> 0) & 1) << (((5) << 3) + 0);
+            is_possible.value |= ((res.to_ullong() >> 1) & 1) << (((6) << 3) + 1);
+            is_possible.value |= ((res.to_ullong() >> 2) & 1) << (((7) << 3) + 2);
+        }
+        value_first = is_first_diagonal2.to_ullong();
+        value_second = is_second_diagonal2.to_ullong();
+        {
+            uint64_t first_mask = (value_first & 56) >> 3;
+            uint64_t second_mask = (value_second & 56) >> 3;
+            auto res = precalced_check_line[(first_mask << 8) + second_mask];
+            is_possible.value |= ((res.to_ullong() >> 0) & 1) << ((0 << 3) + 2);
+            is_possible.value |= ((res.to_ullong() >> 1) & 1) << ((1 << 3) + 1);
+            is_possible.value |= ((res.to_ullong() >> 2) & 1) << ((2 << 3) + 0);
+        }
+        {
+            uint64_t first_mask = (value_first & 960) >> 6;
+            uint64_t second_mask = (value_second & 960) >> 6;
+            auto res = precalced_check_line[(first_mask << 8) + second_mask];
+            is_possible.value |= ((res.to_ullong() >> 0) & 1) << ((0 << 3) + 3);
+            is_possible.value |= ((res.to_ullong() >> 1) & 1) << ((1 << 3) + 2);
+            is_possible.value |= ((res.to_ullong() >> 2) & 1) << ((2 << 3) + 1);
+            is_possible.value |= ((res.to_ullong() >> 3) & 1) << ((3 << 3) + 0);
+        }
+        {
+            uint64_t first_mask = (value_first & 31744) >> 10;
+            uint64_t second_mask = (value_second & 31744) >> 10;
+            auto res = precalced_check_line[(first_mask << 8) + second_mask];
+            is_possible.value |= ((res.to_ullong() >> 0) & 1) << ((0 << 3) + 4);
+            is_possible.value |= ((res.to_ullong() >> 1) & 1) << ((1 << 3) + 3);
+            is_possible.value |= ((res.to_ullong() >> 2) & 1) << ((2 << 3) + 2);
+            is_possible.value |= ((res.to_ullong() >> 3) & 1) << ((3 << 3) + 1);
+            is_possible.value |= ((res.to_ullong() >> 4) & 1) << ((4 << 3) + 0);
+        }
+        {
+            uint64_t first_mask = (value_first & 2064384) >> 15;
+            uint64_t second_mask = (value_second & 2064384) >> 15;
+            auto res = precalced_check_line[(first_mask << 8) + second_mask];
+            is_possible.value |= ((res.to_ullong() >> 0) & 1) << ((0 << 3) + 5);
+            is_possible.value |= ((res.to_ullong() >> 1) & 1) << ((1 << 3) + 4);
+            is_possible.value |= ((res.to_ullong() >> 2) & 1) << ((2 << 3) + 3);
+            is_possible.value |= ((res.to_ullong() >> 3) & 1) << ((3 << 3) + 2);
+            is_possible.value |= ((res.to_ullong() >> 4) & 1) << ((4 << 3) + 1);
+            is_possible.value |= ((res.to_ullong() >> 5) & 1) << ((5 << 3) + 0);
+        }
+        {
+            uint64_t first_mask = (value_first & 266338304) >> 21;
+            uint64_t second_mask = (value_second & 266338304) >> 21;
+            auto res = precalced_check_line[(first_mask << 8) + second_mask];
+            is_possible.value |= ((res.to_ullong() >> 0) & 1) << ((0 << 3) + 6);
+            is_possible.value |= ((res.to_ullong() >> 1) & 1) << ((1 << 3) + 5);
+            is_possible.value |= ((res.to_ullong() >> 2) & 1) << ((2 << 3) + 4);
+            is_possible.value |= ((res.to_ullong() >> 3) & 1) << ((3 << 3) + 3);
+            is_possible.value |= ((res.to_ullong() >> 4) & 1) << ((4 << 3) + 2);
+            is_possible.value |= ((res.to_ullong() >> 5) & 1) << ((5 << 3) + 1);
+            is_possible.value |= ((res.to_ullong() >> 6) & 1) << ((6 << 3) + 0);
+        }
+        {
+            uint64_t first_mask = (value_first & 68451041280) >> 28;
+            uint64_t second_mask = (value_second & 68451041280) >> 28;
+            auto res = precalced_check_line[(first_mask << 8) + second_mask];
+            is_possible.value |= ((res.to_ullong() >> 0) & 1) << ((0 << 3) + 7);
+            is_possible.value |= ((res.to_ullong() >> 1) & 1) << ((1 << 3) + 6);
+            is_possible.value |= ((res.to_ullong() >> 2) & 1) << ((2 << 3) + 5);
+            is_possible.value |= ((res.to_ullong() >> 3) & 1) << ((3 << 3) + 4);
+            is_possible.value |= ((res.to_ullong() >> 4) & 1) << ((4 << 3) + 3);
+            is_possible.value |= ((res.to_ullong() >> 5) & 1) << ((5 << 3) + 2);
+            is_possible.value |= ((res.to_ullong() >> 6) & 1) << ((6 << 3) + 1);
+            is_possible.value |= ((res.to_ullong() >> 7) & 1) << ((7 << 3) + 0);
         }
         for (int32_t row = 1; row < 6; ++row) {
             uint64_t val = row_diag2[row];
-            uint64_t first_mask = (is_first_diagonal2.to_ullong() & val) >> offsets_row_diag2[row];
-            uint64_t second_mask =
-                    (is_second_diagonal2.to_ullong() & val) >> offsets_row_diag2[row];
+            uint64_t first_mask = (value_first & val) >> offsets_row_diag2[row];
+            uint64_t second_mask = (value_second & val) >> offsets_row_diag2[row];
             auto res = precalced_check_line[(first_mask << 8) + second_mask];
             for (int32_t i = 0; i < 8 - row; ++i) {
-                if (res[i]) {
-                    is_possible[((row + i) << 3) + 7 - i] = true;
-                }
+                is_possible.value |= ((res.to_ullong() >> i) & 1) << (((row + i) << 3) + 7 - i);
             }
         }
 
