@@ -87,29 +87,33 @@ namespace ReversiEngine {
             for (size_t i = 0; i < possible_moves.size(); ++i) {
                 int32_t candidate_value =
                         -SmartEvaluation(boards[buffer[i].first], depth - 1, -beta, -alpha);
-                if (value < candidate_value) {
-                    value = candidate_value;
+                if (candidate_value >= beta) {
+                    return candidate_value;
                 }
-                if (alpha < value) {
-                    alpha = value;
-                }
-                if (value >= beta) {
-                    return value;
-                }
+                value = std::max(value, candidate_value);
+                alpha = std::max(alpha, value);
             }
             return value;
         }
-        for (auto cell : possible_moves) {
-            Board new_board = board.MakeMove(cell);
-            int32_t candidate_value = -SmartEvaluation(new_board, depth - 1, -beta, -alpha);
-            if (value < candidate_value) {
-                value = candidate_value;
+        if (depth == 2) {
+            for (auto cell : possible_moves) {
+                Board new_board = board.MakeMove(cell);
+                int32_t candidate_value = -SmartEvaluation(new_board, depth - 1, -beta, -alpha);
+                if (candidate_value >= beta) {
+                    return candidate_value;
+                }
+                value = std::max(value, candidate_value);
+                alpha = std::max(alpha, value);
             }
-            if (alpha < value) {
-                alpha = value;
-            }
-            if (value >= beta) {
-                return value;
+        } else /* depth == 1 */ {
+            for (auto cell : possible_moves) {
+                ++nodes;
+                int32_t candidate_value = -board.MakeMove(cell).FinalEvaluation();
+                if (candidate_value >= beta) {
+                    return candidate_value;
+                }
+                value = std::max(value, candidate_value);
+                alpha = std::max(alpha, value);
             }
         }
         return value;
